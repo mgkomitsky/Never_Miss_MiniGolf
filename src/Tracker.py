@@ -4,11 +4,13 @@ import imutils
 from filterpy.kalman import KalmanFilter
 import requests
 import json
+import serial
 
 class Tracker():
 
     def __init__(self):
 
+        self.ser = None
         self.cap = None
         self.currentFrame = None
         
@@ -116,11 +118,14 @@ class Tracker():
     def isValid(self):  # Is the projected target a valid point? e.g is it within the target area?
         pass
 
-    def sendCommandToMCU(self):
-        pass
+    def sendCommandToMCU(self,command):
+        self.ser.write(command)
 
     def initializeSerialPort(self):
-        pass
+        self.ser = serial.Serial('COM5')
+
+    def closeSerialPort():
+        self.ser.close
 
     def checkESPState(self):
         #Get json data to set states of the machine
