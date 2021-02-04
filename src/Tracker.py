@@ -10,6 +10,11 @@ class Tracker():
 
     def __init__(self):
 
+
+
+
+
+
         self.ser = None
         self.cap = None
         self.currentFrame = None
@@ -27,6 +32,27 @@ class Tracker():
         self.TARGET_HSV = [[0, 0, 0], [255, 255, 255]]
 
         self.f = KalmanFilter(dim_x=2, dim_z=2)
+
+        self.dt = 1
+
+        self.f.x = np.array([0., 0., 0., 0.])  #State matrix
+
+        self.f.F = np.array(          #State transition matrix  B
+            [[1., 0., self.dt, 0.],
+            [0., 1., 0., self.dt],
+            [0., 0., 1., 0.],
+            [0., 0., 0., 1.],])
+
+        self.f.H = np.array([[1.,1.,0.,0.]]) #Measurement function
+
+        self.f.P *= 1000.  #Covariance matrix 
+
+        self.R = 5 #Measurement uncertainty
+        
+
+
+
+
         
 
       
@@ -102,6 +128,8 @@ class Tracker():
         cv2.circle(self.currentFrame, (int(ball_x), int(ball_y)),
                    int(ball_radius), (0, 255, 0), 2)
 
+        
+
     def applyMask(self, frame, lower, upper, window):  # Apply the mask
         FRAME_IN_HSV_SPACE = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         mask = cv2.inRange(FRAME_IN_HSV_SPACE,
@@ -116,6 +144,9 @@ class Tracker():
         pass
 
     def isValid(self):  # Is the projected target a valid point? e.g is it within the target area?
+        pass
+
+    def calculateBounce(self):
         pass
 
     def sendCommandToMCU(self,command):

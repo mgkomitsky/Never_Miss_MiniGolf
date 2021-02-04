@@ -9,6 +9,7 @@ verify_ssl = true
 filterpy = "*"
 requests = "*"
 pyserial = "*"
+numpy = "*"
 
 [requires]
 python_version = "3.7"
