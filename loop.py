@@ -28,7 +28,7 @@ while(True):
     track.findContours(ball_mask)
     track.showFrame()
     track.returnTrackbarPosition("Trackbars")
-   
+    track.f.update([[0],[0],[0],[0]])
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break

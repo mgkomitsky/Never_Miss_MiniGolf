@@ -31,7 +31,7 @@ class Tracker():
         self.BALL_HSV = [[0, 0, 0], [255, 255, 255]]
         self.TARGET_HSV = [[0, 0, 0], [255, 255, 255]]
 
-        self.f = KalmanFilter(dim_x=2, dim_z=2)
+        self.f = KalmanFilter(dim_x=4, dim_z=2)
 
         self.dt = 1
 
@@ -45,9 +45,13 @@ class Tracker():
 
         self.f.H = np.array([[1.,1.,0.,0.]]) #Measurement function
 
+        
+
         self.f.P *= 1000.  #Covariance matrix 
 
         self.R = 5 #Measurement uncertainty
+
+
         
 
 

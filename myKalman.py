@@ -40,8 +40,8 @@ dt = 1
 
 x = 0
 y = 0
-dx = .5
-dy = .5
+dx = .8
+dy = .8
 
 stateMatrix = np.array([[x],[y],[dx],[dy]])
 
@@ -53,13 +53,21 @@ A = np.array([[1,0,dt,0],
 #print(stateMatrix,A)
 print(np.dot(A,stateMatrix))
 
-class KalmanFilter():
+
+
+
+
+
+
+
+
+'''class KalmanFilter():
     def __init__(self):
 
         self.x = 0
         self.y = 0
-        self.dx = .5
-        self.dy = .5
+        self.dx = 0
+        self.dy = 0
 
         self.dt = 1
 
@@ -68,4 +76,4 @@ class KalmanFilter():
         self.A = np.array([[1,0,dt,0],
         [0,1,0,dt],
         [0,0,1,0],
-        [0,0,0,1]])
+        [0,0,0,1]])'''
