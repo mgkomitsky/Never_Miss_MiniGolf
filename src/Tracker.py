@@ -5,6 +5,8 @@ from filterpy.kalman import KalmanFilter
 import requests
 import json
 import serial
+from filterpy.common import Q_discrete_white_noise
+from src import MiniGolfKalmanFilter
 
 class Tracker():
 
@@ -27,33 +29,12 @@ class Tracker():
        
        
         # These variables are for the mask
-
+        
         self.BALL_HSV = [[0, 0, 0], [255, 255, 255]]
         self.TARGET_HSV = [[0, 0, 0], [255, 255, 255]]
-
-        self.f = KalmanFilter(dim_x=4, dim_z=2)
-
-        self.dt = 1
-
-        self.f.x = np.array([0., 0., 0., 0.])  #State matrix
-
-        self.f.F = np.array(          #State transition matrix  B
-            [[1., 0., self.dt, 0.],
-            [0., 1., 0., self.dt],
-            [0., 0., 1., 0.],
-            [0., 0., 0., 1.],])
-
-        self.f.H = np.array([[1.,1.,0.,0.]]) #Measurement function
-
+    
         
-
-        self.f.P *= 1000.  #Covariance matrix 
-
-        self.R = 5 #Measurement uncertainty
-
-
-        
-
+        self.f = MiniGolfKalmanFilter.MiniGolfKalmanFilter(intial_state=[0,0,0,0])
 
 
 
@@ -131,6 +112,24 @@ class Tracker():
        
         cv2.circle(self.currentFrame, (int(ball_x), int(ball_y)),
                    int(ball_radius), (0, 255, 0), 2)
+
+        
+        self.f.predict()
+        print("after one step:")
+        self.f.print_state()
+        print([ball_x,ball_y])
+        self.f.update([ball_x,ball_y])
+
+
+
+        
+        
+
+       
+
+        
+
+        
 
         
 

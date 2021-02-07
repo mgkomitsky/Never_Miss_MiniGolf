@@ -18,6 +18,9 @@ track.setupVideoStream(args.file_name)
 cv2.namedWindow("Trackbars")
 track.drawTrackbars("Trackbars")
 
+
+
+
 while(True):
     #track.checkESPState()
     track.setFrame()
@@ -28,8 +31,11 @@ while(True):
     track.findContours(ball_mask)
     track.showFrame()
     track.returnTrackbarPosition("Trackbars")
-    track.f.update([[0],[0],[0],[0]])
-
+    
+    
+    
+    time.sleep(.1)
+    
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
         
