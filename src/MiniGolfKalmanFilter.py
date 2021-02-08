@@ -5,14 +5,14 @@ from filterpy.common import Q_discrete_white_noise
 #in this class, we inherit from the KalmanFilter class and make a specific version for our use case
 class MiniGolfKalmanFilter(KalmanFilter):
     '''
-    MiniGolfKalmanFilter is a wrapper of the KalmanFilter class. It assumes 2 dimenions and standard netonian physics.
+    MiniGolfKalmanFilter is a wrapper of the KalmanFilter class. It assumes 2 dimensions and standard newtonian physics.
     '''
     def __init__(self,
         intial_state=np.array([0.,0.,0.,0.]),
-        fc = 1.,
-        dt = 1.,
+        fc = 1,
+        dt = 0.03,
         R_val = 5,
-        Q_val = 0.13,
+        Q_val = .13,
         y_walls = [-10,10]
         ):
         #the super funciton runs the constructor of the KalmanFilter class and inherits it's methods for our class 
@@ -22,7 +22,7 @@ class MiniGolfKalmanFilter(KalmanFilter):
         self.intial_state  = intial_state
         self.fc            = fc
         self.dt            = 1
-        self.P            *= 1000.
+        self.P            *= 2.
         self.R            *= R_val
         self.Q             = Q_discrete_white_noise(dim=4, dt=dt, var=Q_val)
         self.x             = intial_state
@@ -36,9 +36,10 @@ class MiniGolfKalmanFilter(KalmanFilter):
                                       [1.,    0.,   0.,  0.], 
                                       [0.,    1.,   0.,  0.],
                                       ])
+        
 
     def print_state(self):
-        print("\tcurrent possition: ({:.2f},{:.2f}) velocity: ({:.2f},{:.2f})".format(*self.x))
+        print("\tcurrent position: ({:.2f},{:.2f}) velocity: ({:.2f},{:.2f})".format(*self.x))
 
     def flip_y_about(self,y_val):
         '''This flips the y value around the set target y_val, and flips the velocity'''
@@ -50,7 +51,7 @@ class MiniGolfKalmanFilter(KalmanFilter):
     def predict_and_bounce(self):
         '''mockup of how the bouncing might work'''
         self.predict()
-        x,y,dx,dy = self.x
+        x,y,dx,dy = self.xs
         bottom_wall, top_wall = sorted(self.y_walls)
         if y > top_wall:
             self.flip_y_about(top_wall)

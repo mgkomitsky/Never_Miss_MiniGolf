@@ -7,6 +7,7 @@ import json
 import serial
 from filterpy.common import Q_discrete_white_noise
 from src import MiniGolfKalmanFilter
+import random
 
 class Tracker():
 
@@ -37,7 +38,7 @@ class Tracker():
         self.f = MiniGolfKalmanFilter.MiniGolfKalmanFilter(intial_state=[0,0,0,0])
 
 
-
+        
         
 
       
@@ -97,32 +98,51 @@ class Tracker():
         ret, self.currentFrame = self.cap.read()
 
     def findContours(self, mask):  # Print center of contour
+
+    
         contours = cv2.findContours(
             mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         contours = imutils.grab_contours(contours)
 
         contours_map = map(cv2.contourArea,contours)
         # if no contours, return some default value
+        self.f.predict()
         if len(contours) > 0:
             ball_c = max(contours, key=cv2.contourArea)
 
             ((ball_x, ball_y), ball_radius) = cv2.minEnclosingCircle(ball_c)
+            self.f.update([ball_x,ball_y])
+            if (self.f.x == [0,0,0,0]).all():
+                self.f.x = [ball_x,ball_y,0,0]
+            
+            
+            
         else:
             (ball_x, ball_y), ball_radius = (0,0), 10
+            self.f.x = [0,0,0,0]
+            
+            
        
         cv2.circle(self.currentFrame, (int(ball_x), int(ball_y)),
                    int(ball_radius), (0, 255, 0), 2)
 
+
         
-        self.f.predict()
-        print("after one step:")
+       
+        
         self.f.print_state()
         print([ball_x,ball_y])
-        self.f.update([ball_x,ball_y])
-
-
-
         
+        
+        
+
+        cv2.circle(self.currentFrame, (int(self.f.x[0]), int(self.f.x[1])), int(ball_radius), (0, 255, 255), 2)
+
+
+        cv2.line(       self.currentFrame, 
+        (int(self.f.x[0]), int(self.f.x[1])) ,
+        (int(self.f.x[0]+2*self.f.x[1]), int(self.f.x[1]+2*self.f.x[3])),      
+        (0,255,120) ,2)
         
 
        
@@ -147,9 +167,6 @@ class Tracker():
         pass
 
     def isValid(self):  # Is the projected target a valid point? e.g is it within the target area?
-        pass
-
-    def calculateBounce(self):
         pass
 
     def sendCommandToMCU(self,command):
