@@ -40,7 +40,7 @@ while(True):
     
     
     
-    time.sleep(.1)
+    #time.sleep(.1)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break

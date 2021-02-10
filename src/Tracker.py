@@ -183,13 +183,13 @@ class Tracker():
 
         contours_map = map(cv2.contourArea,contours)
         # if no contours, return some default value
-        
+        ball_y = 0
         if len(contours) > 0:
             ball_c = max(contours, key=cv2.contourArea)
             
 
             ((ball_x, ball_y), ball_radius) = cv2.minEnclosingCircle(ball_c)
-
+       
         self.targetPositions[1] = ball_y
         return ball_y
         
