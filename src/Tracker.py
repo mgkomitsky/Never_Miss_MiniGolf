@@ -14,7 +14,7 @@ class Tracker():
     def __init__(self):
 
 
-
+        self.targetPositions = [0,0]
 
         self.reset = False
 
@@ -27,6 +27,8 @@ class Tracker():
        
 
         cv2.namedWindow("Mask", cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
+
+        cv2.namedWindow("Target Mask", cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
        
        
         # These variables are for the mask
@@ -58,8 +60,8 @@ class Tracker():
         cv2.createTrackbar("Ball UV", window, 255, 255, self.nothing)
 
         cv2.createTrackbar("Target LH", window, 0, 255, self.nothing)
-        cv2.createTrackbar("Target LS", window, 0, 255, self.nothing)
-        cv2.createTrackbar("Target LV", window, 0, 255, self.nothing)
+        cv2.createTrackbar("Target LS", window, 233, 255, self.nothing)
+        cv2.createTrackbar("Target LV", window, 131, 255, self.nothing)
         cv2.createTrackbar("Target UH", window,
                            255, 255, self.nothing)
         cv2.createTrackbar("Target US", window,
@@ -109,10 +111,17 @@ class Tracker():
         self.f.predict()
         if len(contours) > 0:
             ball_c = max(contours, key=cv2.contourArea)
+            
 
             ((ball_x, ball_y), ball_radius) = cv2.minEnclosingCircle(ball_c)
-            for x in range(1):
-                self.f.update([ball_x,ball_y])
+            
+
+            if ball_radius <10:
+                self.resetFilter()
+
+
+            
+            self.f.update([ball_x,ball_y])
             
             
             
@@ -127,8 +136,8 @@ class Tracker():
         else:
             (ball_x, ball_y), ball_radius = (0,0), 10
             
-            self.f = MiniGolfKalmanFilter.MiniGolfKalmanFilter()
-            self.reset = True
+            self.resetFilter()
+            
             
             
        
@@ -149,19 +158,53 @@ class Tracker():
         cv2.circle(self.currentFrame, (int(self.f.x[0]), int(self.f.x[1])), int(ball_radius), (0, 255, 255), 2)
 
 
-        cv2.line(       self.currentFrame, 
-        (int(self.f.x[0]), int(self.f.x[1])) ,
-        (int(self.f.x[0]+2*self.f.x[1]), int(self.f.x[1]+2*self.f.x[3])),      
-        (0,255,120) ,2)
-        
+        x = self.calculateTargetPoint(1500)[0]
+        y = self.calculateTargetPoint(1500)[1]
 
+
+        if(self.f.x[0] < 1500):
+            cv2.line(       self.currentFrame, 
+            (int(self.f.x[0]), int(self.f.x[1])) ,
+            (int(x), int(y)),      
+            (0,255,120) ,2)
+
+        self.targetPositions[0] = y
+        return y
+       
+        
+        
        
 
-        
+    def findTarget(self, mask):
 
-        
+        contours = cv2.findContours(
+            mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contours = imutils.grab_contours(contours)
 
+        contours_map = map(cv2.contourArea,contours)
+        # if no contours, return some default value
         
+        if len(contours) > 0:
+            ball_c = max(contours, key=cv2.contourArea)
+            
+
+            ((ball_x, ball_y), ball_radius) = cv2.minEnclosingCircle(ball_c)
+
+        self.targetPositions[1] = ball_y
+        return ball_y
+        
+    def resetFilter(self):
+        self.f = MiniGolfKalmanFilter.MiniGolfKalmanFilter()
+        self.reset = True
+
+
+    def calculateSlope(self):
+        return (self.f.x[3]/self.f.x[2])
+
+    def calculateTargetPoint(self, x):
+        m = self.calculateSlope()
+        y = m*(x-self.f.x[0])+self.f.x[1]
+        return (x,y)
 
     def applyMask(self, frame, lower, upper, window):  # Apply the mask
         FRAME_IN_HSV_SPACE = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -173,8 +216,15 @@ class Tracker():
     def fitData(self):  # Create the model
         pass
 
-    def calculateProjectedTarget(self):  # Use model to calculate target
-        pass
+    def calculateCommand(self):  # Use model to calculate target
+
+        if self.targetPositions[0] > self.targetPositions[1]:
+            print("DOWN")
+        elif self.targetPositions[0] < self.targetPositions[1]:
+            print("UP")
+        else: 
+            print("STAY")
+
 
     def isValid(self):  # Is the projected target a valid point? e.g is it within the target area?
         pass

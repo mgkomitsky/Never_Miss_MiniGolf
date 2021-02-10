@@ -28,13 +28,19 @@ while(True):
 
     ball_mask = track.applyMask(track.currentFrame,
                                 track.BALL_HSV[0], track.BALL_HSV[1], "Mask")
+
+    target_mask = track.applyMask(track.currentFrame,
+                                track.TARGET_HSV[0], track.TARGET_HSV[1], "Target Mask")
+
     track.findContours(ball_mask)
+    print(track.findTarget(target_mask))
     track.showFrame()
     track.returnTrackbarPosition("Trackbars")
+    track.calculateCommand()
     
     
     
-    #time.sleep(.1)
+    time.sleep(.1)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
