@@ -16,7 +16,7 @@ class Tracker():
 
 
 
-
+        self.reset = False
 
         self.ser = None
         self.cap = None
@@ -35,7 +35,7 @@ class Tracker():
         self.TARGET_HSV = [[0, 0, 0], [255, 255, 255]]
     
         
-        self.f = MiniGolfKalmanFilter.MiniGolfKalmanFilter(intial_state=[0,0,0,0])
+        self.f = MiniGolfKalmanFilter.MiniGolfKalmanFilter(intial_state=[0,0,1,0])
 
 
         
@@ -111,15 +111,24 @@ class Tracker():
             ball_c = max(contours, key=cv2.contourArea)
 
             ((ball_x, ball_y), ball_radius) = cv2.minEnclosingCircle(ball_c)
-            self.f.update([ball_x,ball_y])
-            if (self.f.x == [0,0,0,0]).all():
-                self.f.x = [ball_x,ball_y,0,0]
+            for x in range(1):
+                self.f.update([ball_x,ball_y])
+            
+            
+            
+            if (self.reset == True):
+                self.f.x = [ball_x,ball_y,100,0]
+                self.reset = False
+                
+                
             
             
             
         else:
             (ball_x, ball_y), ball_radius = (0,0), 10
-            self.f.x = [0,0,0,0]
+            
+            self.f = MiniGolfKalmanFilter.MiniGolfKalmanFilter()
+            self.reset = True
             
             
        
@@ -130,8 +139,9 @@ class Tracker():
         
        
         
-        self.f.print_state()
-        print([ball_x,ball_y])
+        #self.f.print_state()
+        #print([ball_x,ball_y])
+        
         
         
         

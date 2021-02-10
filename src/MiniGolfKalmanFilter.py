@@ -8,12 +8,13 @@ class MiniGolfKalmanFilter(KalmanFilter):
     MiniGolfKalmanFilter is a wrapper of the KalmanFilter class. It assumes 2 dimensions and standard newtonian physics.
     '''
     def __init__(self,
-        intial_state=np.array([0.,0.,0.,0.]),
+        intial_state=np.array([0.,500.,100.,0.]),
         fc = 1,
-        dt = 0.03,
-        R_val = 5,
-        Q_val = .13,
-        y_walls = [-10,10]
+        dt = .03,
+        R_val = .01,
+        Q_val = 0,
+        y_walls = [-10,10],
+        P = .01
         ):
         #the super funciton runs the constructor of the KalmanFilter class and inherits it's methods for our class 
         super().__init__(dim_x=4, dim_z=2)
@@ -21,8 +22,8 @@ class MiniGolfKalmanFilter(KalmanFilter):
         self.y_walls       = y_walls
         self.intial_state  = intial_state
         self.fc            = fc
-        self.dt            = 1
-        self.P            *= 2.
+        self.dt            = dt
+        self.P            *= P
         self.R            *= R_val
         self.Q             = Q_discrete_white_noise(dim=4, dt=dt, var=Q_val)
         self.x             = intial_state
