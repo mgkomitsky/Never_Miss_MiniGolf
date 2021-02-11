@@ -43,12 +43,6 @@ class Tracker():
         
         self.f = MiniGolfKalmanFilter.MiniGolfKalmanFilter(intial_state=[0,0,1,0])
 
-
-        
-        
-
-      
-
     def nothing(self, x):
         pass
 
@@ -103,19 +97,66 @@ class Tracker():
     def setFrame(self):
         ret, self.currentFrame = self.cap.read()
 
-    def calculateBall(self, mask):  # Print center of contour
+    def calculateBall(self, mask):  
 
-    
-        contours = cv2.findContours(
-            mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        contours = imutils.grab_contours(contours)
-
-        contours_map = map(cv2.contourArea,contours)
-        # if no contours, return some default value
+        contours = self.findContours(mask)
         self.f.predict()
+        ((contour_x, contour_y), contour_radius) = self.checkStatusOfContour(contours)
+        cv2.circle(self.currentFrame, (int(contour_x), int(contour_y)),int(contour_radius), (0, 255, 0), 2) #Draw ball 
+        cv2.circle(self.currentFrame, (int(self.f.x[0]), int(self.f.x[1])), int(contour_radius), (0, 255, 255), 2)   #Drawing Kalman tracking ball
+        self.drawLineToTargetPoint()
+        
+
+    def drawLineToTargetPoint(self):
+        x,y = self.calculateTargetPoint()
+
+
+        if(self.f.x[0] < self.targetRail_x):              #Draw the line to the target point
+            cv2.line(       self.currentFrame, 
+            (int(self.f.x[0]), int(self.f.x[1])) ,
+            (int(x), int(y)),      
+            (0,255,120) ,2)
+
+
+    def findTarget(self, mask):
+
+        contours = self.findContours(mask)
+        contour_y = 0
+        if len(contours) > 0:
+            contours = max(contours, key=cv2.contourArea)
+
+            ((contour_x, contour_y), contour_radius) = cv2.minEnclosingCircle(contours)
+       
+        self.targetPositions[1] = contour_y
+        self.targetPositions[0] = self.calculateTargetPoint()[1]
+        return contour_y
+        
+    def findContours(self, mask):
+        contours = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contours = imutils.grab_contours(contours)
+        #if len(contours) > 0:
+            #contours = max(contours, key=cv2.contourArea)
+            #((contour_x, contour_y), contour_radius) = cv2.minEnclosingCircle(contours)
+       
+        return contours
+
+    def bounceCalculator(self):
+        #If the target is not on the rail (x coordinate) , then it needs to calculate where it's going to go.
+        #set x to the current target point
+        #flip the slope
+        #calculate next target point
+        
+        pass
+
+    def resetFilter(self):
+        self.f = MiniGolfKalmanFilter.MiniGolfKalmanFilter()
+        self.reset = True
+
+    def checkStatusOfContour(self,contours):
+        
+
         if len(contours) > 0:
             contour = max(contours,  key=cv2.contourArea)
-    
             ((contour_x, contour_y), contour_radius) = cv2.minEnclosingCircle(contour)
 
             if contour_radius < 10:
@@ -130,72 +171,8 @@ class Tracker():
             (contour_x, contour_y), contour_radius = (0,0), 10
             
             self.resetFilter()
-            
-        cv2.circle(self.currentFrame, (int(contour_x), int(contour_y)),
-                   int(contour_radius), (0, 255, 0), 2)
-        
-        cv2.circle(self.currentFrame, (int(self.f.x[0]), int(self.f.x[1])), int(contour_radius), (0, 255, 255), 2)
 
-        x = self.calculateTargetPoint()[0]
-        y = self.calculateTargetPoint()[1]
-
-        if(self.f.x[0] < 1500):
-            cv2.line(       self.currentFrame, 
-            (int(self.f.x[0]), int(self.f.x[1])) ,
-            (int(x), int(y)),      
-            (0,255,120) ,2)
-
-        self.targetPositions[0] = y
-        return y
-       
-    
-        
-    
-    def findTarget(self, mask):
-
-        contours = cv2.findContours(
-            mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        contours = imutils.grab_contours(contours)
-
-        contours_map = map(cv2.contourArea,contours)
-        # if no contours, return some default value
-        contour_y = 0
-        if len(contours) > 0:
-            contours = max(contours, key=cv2.contourArea)
-
-            ((contour_x, contour_y), contour_radius) = cv2.minEnclosingCircle(contours)
-       
-        self.targetPositions[1] = contour_y
-        return contour_y
-        
-
-    def generalFindContour(self, mask):
-        contours = cv2.findContours(
-            mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        contours = imutils.grab_contours(contours)
-
-        contours_map = map(cv2.contourArea,contours)
-        # if no contours, return some default value
-        contour_y = 0
-        if len(contours) > 0:
-            contours = max(contours, key=cv2.contourArea)
-
-            ((contour_x, contour_y), contour_radius) = cv2.minEnclosingCircle(contours)
-       
-        
-        return (contour_x, contour_y)
-
-    def bounceCalculator(self):
-        #If the target is not on the rail (x coordinate) , then it needs to calculate where it's going to go.
-        #set x to the current target point
-        #flip the slope
-        #calculate next target point
-        pass
-
-    def resetFilter(self):
-        self.f = MiniGolfKalmanFilter.MiniGolfKalmanFilter()
-        self.reset = True
-
+        return ((contour_x, contour_y), contour_radius)
 
     def calculateSlope(self):
         return (self.f.x[3]/self.f.x[2])
@@ -214,9 +191,8 @@ class Tracker():
             return (x,self.topOfTargetRail_y)
         elif y > self.bottomOfTargetRail: #Below target rail
             x  = (y - self.f.x[1]+self.f.x[0]*m)/m
-            return (x,self.topOfBottomRail_y)
+            return (x,self.bottomOfBottomRail_y)
     
-
     def applyMask(self, frame, lower, upper, window):  # Apply the mask
         FRAME_IN_HSV_SPACE = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         mask = cv2.inRange(FRAME_IN_HSV_SPACE,
@@ -227,7 +203,7 @@ class Tracker():
     def fitData(self):  # Create the model
         pass
 
-    def calculateCommand(self):  # Use model to calculate target
+    def calculateCommand(self):  
 
         if self.targetPositions[0] > self.targetPositions[1]:
             print("DOWN")
@@ -235,7 +211,6 @@ class Tracker():
             print("UP")
         else: 
             print("STAY")
-
 
     def isValid(self):  # Is the projected target a valid point? e.g is it within the target area?
         pass
