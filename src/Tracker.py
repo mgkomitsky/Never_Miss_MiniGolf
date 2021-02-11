@@ -13,6 +13,10 @@ class Tracker():
 
     def __init__(self):
 
+        self.targetRail_x = 1500
+        self.topOfTargetRail_y = 0
+        self.bottomOfTargetRail_y = 2000
+
 
         self.targetPositions = [0,0]
 
@@ -99,7 +103,7 @@ class Tracker():
     def setFrame(self):
         ret, self.currentFrame = self.cap.read()
 
-    def findContours(self, mask):  # Print center of contour
+    def calculateBall(self, mask):  # Print center of contour
 
     
         contours = cv2.findContours(
@@ -110,7 +114,7 @@ class Tracker():
         # if no contours, return some default value
         self.f.predict()
         if len(contours) > 0:
-            contour = max(contours, key=cv2.contourArea)
+            contour = max(contours,  key=cv2.contourArea)
     
             ((contour_x, contour_y), contour_radius) = cv2.minEnclosingCircle(contour)
 
@@ -132,8 +136,8 @@ class Tracker():
         
         cv2.circle(self.currentFrame, (int(self.f.x[0]), int(self.f.x[1])), int(contour_radius), (0, 255, 255), 2)
 
-        x = self.calculateTargetPoint(1500)[0]
-        y = self.calculateTargetPoint(1500)[1]
+        x = self.calculateTargetPoint()[0]
+        y = self.calculateTargetPoint()[1]
 
         if(self.f.x[0] < 1500):
             cv2.line(       self.currentFrame, 
@@ -165,7 +169,27 @@ class Tracker():
         return contour_y
         
 
+    def generalFindContour(self, mask):
+        contours = cv2.findContours(
+            mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contours = imutils.grab_contours(contours)
+
+        contours_map = map(cv2.contourArea,contours)
+        # if no contours, return some default value
+        contour_y = 0
+        if len(contours) > 0:
+            contours = max(contours, key=cv2.contourArea)
+
+            ((contour_x, contour_y), contour_radius) = cv2.minEnclosingCircle(contours)
+       
+        
+        return (contour_x, contour_y)
+
     def bounceCalculator(self):
+        #If the target is not on the rail (x coordinate) , then it needs to calculate where it's going to go.
+        #set x to the current target point
+        #flip the slope
+        #calculate next target point
         pass
 
     def resetFilter(self):
@@ -176,10 +200,22 @@ class Tracker():
     def calculateSlope(self):
         return (self.f.x[3]/self.f.x[2])
 
-    def calculateTargetPoint(self, x):
+    def calculateTargetPoint(self):
+
+        x = self.targetRail_x
         m = self.calculateSlope()
         y = m*(x-self.f.x[0])+self.f.x[1]
-        return (x,y)
+        
+
+        if y >= 0: #if its on the target rail
+            return (x,y)
+        elif y < self.topOfTargetRail: #above target rail
+            x  = (y - self.f.x[1]+self.f.x[0]*m)/m
+            return (x,self.topOfTargetRail_y)
+        elif y > self.bottomOfTargetRail: #Below target rail
+            x  = (y - self.f.x[1]+self.f.x[0]*m)/m
+            return (x,self.topOfBottomRail_y)
+    
 
     def applyMask(self, frame, lower, upper, window):  # Apply the mask
         FRAME_IN_HSV_SPACE = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)

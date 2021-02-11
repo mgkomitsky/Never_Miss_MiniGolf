@@ -32,7 +32,7 @@ while(True):
     target_mask = track.applyMask(track.currentFrame,
                                 track.TARGET_HSV[0], track.TARGET_HSV[1], "Target Mask")
 
-    track.findContours(ball_mask)
+    track.calculateBall(ball_mask)
     print(track.findTarget(target_mask))
     track.showFrame()
     track.returnTrackbarPosition("Trackbars")
