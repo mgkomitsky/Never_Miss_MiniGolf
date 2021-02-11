@@ -17,6 +17,8 @@ class Tracker():
         self.topOfTargetRail_y = 0
         self.bottomOfTargetRail_y = 2000
 
+        self.targetPoint = [0,0]
+
 
         self.targetPositions = [0,0]
 
@@ -28,7 +30,6 @@ class Tracker():
         
         
         cv2.namedWindow("Video", cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
-       
 
         cv2.namedWindow("Mask", cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
 
@@ -104,11 +105,12 @@ class Tracker():
         ((contour_x, contour_y), contour_radius) = self.checkStatusOfContour(contours)
         cv2.circle(self.currentFrame, (int(contour_x), int(contour_y)),int(contour_radius), (0, 255, 0), 2) #Draw ball 
         cv2.circle(self.currentFrame, (int(self.f.x[0]), int(self.f.x[1])), int(contour_radius), (0, 255, 255), 2)   #Drawing Kalman tracking ball
+        self.calculateTargetPoint()
         self.drawLineToTargetPoint()
         
 
     def drawLineToTargetPoint(self):
-        x,y = self.calculateTargetPoint()
+        x,y = self.targetPoint
 
 
         if(self.f.x[0] < self.targetRail_x):              #Draw the line to the target point
@@ -128,7 +130,7 @@ class Tracker():
             ((contour_x, contour_y), contour_radius) = cv2.minEnclosingCircle(contours)
        
         self.targetPositions[1] = contour_y
-        self.targetPositions[0] = self.calculateTargetPoint()[1]
+        self.targetPositions[0] = self.targetPoint[1]
         return contour_y
         
     def findContours(self, mask):
@@ -145,6 +147,9 @@ class Tracker():
         #set x to the current target point
         #flip the slope
         #calculate next target point
+        #Change target point if necessary
+
+        
         
         pass
 
@@ -185,13 +190,16 @@ class Tracker():
         
 
         if y >= 0: #if its on the target rail
-            return (x,y)
+            self.targetPoint = [x,y]
+            
         elif y < self.topOfTargetRail: #above target rail
             x  = (y - self.f.x[1]+self.f.x[0]*m)/m
-            return (x,self.topOfTargetRail_y)
+            self.targetPoint = [x,self.topOfTargetRail_y]
+            
         elif y > self.bottomOfTargetRail: #Below target rail
             x  = (y - self.f.x[1]+self.f.x[0]*m)/m
-            return (x,self.bottomOfBottomRail_y)
+            self.targetPoint = [x,self.bottomOfBottomRail_y]
+          
     
     def applyMask(self, frame, lower, upper, window):  # Apply the mask
         FRAME_IN_HSV_SPACE = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -199,9 +207,6 @@ class Tracker():
                            np.float32(lower), np.float32(upper))
         cv2.imshow(window, mask)
         return mask
-
-    def fitData(self):  # Create the model
-        pass
 
     def calculateCommand(self):  
 
