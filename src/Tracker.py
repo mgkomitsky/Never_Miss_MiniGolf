@@ -110,57 +110,30 @@ class Tracker():
         # if no contours, return some default value
         self.f.predict()
         if len(contours) > 0:
-            ball_c = max(contours, key=cv2.contourArea)
-            
+            contour = max(contours, key=cv2.contourArea)
+    
+            ((contour_x, contour_y), contour_radius) = cv2.minEnclosingCircle(contour)
 
-            ((ball_x, ball_y), ball_radius) = cv2.minEnclosingCircle(ball_c)
-            
-
-            if ball_radius <10:
+            if contour_radius < 10:
                 self.resetFilter()
-
-
-            
-            self.f.update([ball_x,ball_y])
-            
-            
+            self.f.update([contour_x,contour_y])
             
             if (self.reset == True):
-                self.f.x = [ball_x,ball_y,100,0]
+                self.f.x = [contour_x,contour_y,100,0]
                 self.reset = False
                 
-                
-            
-            
-            
         else:
-            (ball_x, ball_y), ball_radius = (0,0), 10
+            (contour_x, contour_y), contour_radius = (0,0), 10
             
             self.resetFilter()
             
-            
-            
-       
-        cv2.circle(self.currentFrame, (int(ball_x), int(ball_y)),
-                   int(ball_radius), (0, 255, 0), 2)
-
-
+        cv2.circle(self.currentFrame, (int(contour_x), int(contour_y)),
+                   int(contour_radius), (0, 255, 0), 2)
         
-       
-        
-        #self.f.print_state()
-        #print([ball_x,ball_y])
-        
-        
-        
-        
-
-        cv2.circle(self.currentFrame, (int(self.f.x[0]), int(self.f.x[1])), int(ball_radius), (0, 255, 255), 2)
-
+        cv2.circle(self.currentFrame, (int(self.f.x[0]), int(self.f.x[1])), int(contour_radius), (0, 255, 255), 2)
 
         x = self.calculateTargetPoint(1500)[0]
         y = self.calculateTargetPoint(1500)[1]
-
 
         if(self.f.x[0] < 1500):
             cv2.line(       self.currentFrame, 
@@ -171,10 +144,9 @@ class Tracker():
         self.targetPositions[0] = y
         return y
        
+    
         
-        
-       
-
+    
     def findTarget(self, mask):
 
         contours = cv2.findContours(
@@ -183,16 +155,19 @@ class Tracker():
 
         contours_map = map(cv2.contourArea,contours)
         # if no contours, return some default value
-        ball_y = 0
+        contour_y = 0
         if len(contours) > 0:
-            ball_c = max(contours, key=cv2.contourArea)
-            
+            contours = max(contours, key=cv2.contourArea)
 
-            ((ball_x, ball_y), ball_radius) = cv2.minEnclosingCircle(ball_c)
+            ((contour_x, contour_y), contour_radius) = cv2.minEnclosingCircle(contours)
        
-        self.targetPositions[1] = ball_y
-        return ball_y
+        self.targetPositions[1] = contour_y
+        return contour_y
         
+
+    def bounceCalculator(self):
+        pass
+
     def resetFilter(self):
         self.f = MiniGolfKalmanFilter.MiniGolfKalmanFilter()
         self.reset = True
