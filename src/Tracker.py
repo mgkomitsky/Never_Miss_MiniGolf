@@ -196,6 +196,7 @@ class Tracker():
             x  = (y - self.f.x[1]+self.f.x[0]*m)/m
             self.targetPoint = [x,self.topOfTargetRail_y]
             
+
         elif y > self.bottomOfTargetRail: #Below target rail
             x  = (y - self.f.x[1]+self.f.x[0]*m)/m
             self.targetPoint = [x,self.bottomOfBottomRail_y]
@@ -217,8 +218,6 @@ class Tracker():
         else: 
             print("STAY")
 
-    def isValid(self):  # Is the projected target a valid point? e.g is it within the target area?
-        pass
 
     def sendCommandToMCU(self,command):
         self.ser.write(command)
@@ -243,9 +242,7 @@ class Tracker():
 
         print(response)
 
-    def everyFrame(self):  # Run this set of functions for every frame
-        self.setFrame()
-        self.showFrame()
+
 
     def openWindow(self, windowName, l=960, w=540):
         cv2.namedWindow(windowName)
