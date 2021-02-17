@@ -25,7 +25,7 @@ class Tracker():
         self.targetPositions = [0,0]
 
 
-        self.boundaries = [[0,0,800,0],[0,500,800,500],[800,0,800,500]]   #This is going to be an array of line segments         [[x3,y3,x4,y4],[x3,y3,x4,y4]]
+        self.boundaries = [[0,100,800,100],[0,500,800,500],[800,100,800,500]]   #This is going to be an array of line segments         [[x3,y3,x4,y4],[x3,y3,x4,y4]]
 
 
 
@@ -140,8 +140,9 @@ class Tracker():
 
             ((contour_x, contour_y), contour_radius) = cv2.minEnclosingCircle(contours)
        
-        self.targetPositions[1] = contour_y
-        self.targetPositions[0] = self.targetPoint[1]
+        if self.targetPoint != None:
+            self.targetPositions[1] = contour_y
+            self.targetPositions[0] = self.targetPoint[1]
         return contour_y
         
     def findContours(self, mask):
@@ -196,7 +197,7 @@ class Tracker():
     def returnPointOfIntersection(self):
         #Iterate thorugh set of defined lines
         #Calculate target point
-            
+        self.targetPoint = None
         points = []
         
         for line in self.boundaries:
@@ -226,15 +227,15 @@ class Tracker():
             x = x1 + t*(x2 - x1)
 
             y = y1 + t*(y2 - y1)
-
-            
-            points.append([x,y])
+            #print(t,u)
+            if u >= 0 and u <= 1 and t >= 0:
+                points.append([x,y])
 
         if len(points) == 0:
             return None    
         m = self.returnClosest(points)
             
-            
+        print(points)
         
         return points[m]
 

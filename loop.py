@@ -41,7 +41,7 @@ while(True):
     track.showFrame()
     
     track.calculateCommand()
-    print(track.returnPointOfIntersection())
+    track.returnPointOfIntersection()
     
     
     
