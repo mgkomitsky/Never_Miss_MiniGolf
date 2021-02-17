@@ -11,18 +11,20 @@ parser.add_argument('--file_name','-f',type=str, default=0)
 args = parser.parse_args()
 
 track = Tracker()
-#if file name is provided, setupVideoStream will use the file
+#if file name is provided, setupVideoStream will use the file 
 #otherwise it will use 0, leading to camera capture
 #track.setupVideoStream(args.file_name)
 track.setupVideoStream(args.file_name)
 cv2.namedWindow("Trackbars")
 track.drawTrackbars("Trackbars")
+#track.initializeSerialPort()
 
 
 
 
 while(True):
     #track.checkESPState()
+    track.returnTrackbarPosition("Trackbars")
     track.setFrame()
     #time.sleep(.01)            
 
@@ -33,10 +35,12 @@ while(True):
                                 track.TARGET_HSV[0], track.TARGET_HSV[1], "Target Mask")
 
     track.calculateBall(ball_mask)
-    print(track.findTarget(target_mask))
+    track.findTarget(target_mask)
     track.showFrame()
-    track.returnTrackbarPosition("Trackbars")
+    
     track.calculateCommand()
+    print(track.returnPointOfIntersection())
+    
     
     
     
@@ -47,6 +51,7 @@ while(True):
         
 track.cap.release()
 cv2.destroyAllWindows()
+track.closeSerialPort()
 
 
-#loop.py -f data\test2.mkv
+#loop.py -f data\test3.mkv 

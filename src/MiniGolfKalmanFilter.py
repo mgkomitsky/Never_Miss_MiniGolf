@@ -8,9 +8,9 @@ class MiniGolfKalmanFilter(KalmanFilter):
     MiniGolfKalmanFilter is a wrapper of the KalmanFilter class. It assumes 2 dimensions and standard newtonian physics.
     '''
     def __init__(self,
-        intial_state=np.array([0.,500.,100.,0.]),
+        intial_state=np.array([0.,250.,100.,0.]),
         fc = 1,
-        dt = .03,
+        dt = 1,
         R_val = .01,
         Q_val = 0,
         y_walls = [-10,10],

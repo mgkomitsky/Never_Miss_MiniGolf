@@ -17,13 +17,19 @@ class Tracker():
         self.topOfTargetRail_y = 0
         self.bottomOfTargetRail_y = 2000
 
-        self.targetPoint = [0,0]
+        self.targetPoint = None
+
+      
 
 
         self.targetPositions = [0,0]
 
-        self.reset = False
 
+        self.boundaries = [[0,0,800,0],[0,500,800,500],[800,0,800,500]]   #This is going to be an array of line segments         [[x3,y3,x4,y4],[x3,y3,x4,y4]]
+
+
+
+        self.reset = False
         self.ser = None
         self.cap = None
         self.currentFrame = None
@@ -53,7 +59,7 @@ class Tracker():
 
         cv2.createTrackbar("Ball LH", window, 0, 255, self.nothing)
         cv2.createTrackbar("Ball LS", window, 0, 255, self.nothing)
-        cv2.createTrackbar("Ball LV", window, 102, 255, self.nothing)
+        cv2.createTrackbar("Ball LV", window, 125, 255, self.nothing)
         cv2.createTrackbar("Ball UH", window, 255, 255, self.nothing)
         cv2.createTrackbar("Ball US", window, 172, 255, self.nothing)
         cv2.createTrackbar("Ball UV", window, 255, 255, self.nothing)
@@ -97,6 +103,7 @@ class Tracker():
 
     def setFrame(self):
         ret, self.currentFrame = self.cap.read()
+        #self.currentFrame = cv2.rotate(self.currentFrame, rotateCode = cv2.ROTATE_90_COUNTERCLOCKWISE)
 
     def calculateBall(self, mask):  
 
@@ -109,15 +116,19 @@ class Tracker():
         self.drawLineToTargetPoint()
         
 
-    def drawLineToTargetPoint(self):
-        x,y = self.targetPoint
+    def drawLineToTargetPoint(self):  # May want to turn this into a function that draws a line between all points in a target point array for the bounce
+        
+        if self.targetPoint != None:
+        
+            x,y = self.targetPoint
 
-
-        if(self.f.x[0] < self.targetRail_x):              #Draw the line to the target point
+            
+                          #Draw the line to the target point
             cv2.line(       self.currentFrame, 
             (int(self.f.x[0]), int(self.f.x[1])) ,
             (int(x), int(y)),      
             (0,255,120) ,2)
+        
 
 
     def findTarget(self, mask):
@@ -148,8 +159,8 @@ class Tracker():
         #flip the slope
         #calculate next target point
         #Change target point if necessary
-
         
+    
         
         pass
 
@@ -182,24 +193,76 @@ class Tracker():
     def calculateSlope(self):
         return (self.f.x[3]/self.f.x[2])
 
-    def calculateTargetPoint(self):
+    def returnPointOfIntersection(self):
+        #Iterate thorugh set of defined lines
+        #Calculate target point
+            
+        points = []
+        
+        for line in self.boundaries:
+            
+            
+            x1,y1,x2,y2 = self.f.x[0],self.f.x[1],self.f.x[0]+self.f.x[2],self.f.x[1]+self.f.x[3]
+            
+            x3,y3,x4,y4 = line[0],line[1],line[2],line[3]
+            #t
 
-        x = self.targetRail_x
-        m = self.calculateSlope()
-        y = m*(x-self.f.x[0])+self.f.x[1]
+            num =  (x1 - x3)*(y3 - y4)-(y1 - y3)*(x3 - x4)
+            den = (x1 - x2)*(y3 - y4) - (y1 - y2)*(x3 - x4)
+            if den == 0:
+                continue
+            t = num/den
+
+            #u
+
+            num =  (x2 - x1)*(y1 - y3)-(y2 - y1)*(x1 - x3)
+            den = (x1 - x2)*(y3 - y4) - (y1 - y2)*(x3 - x4)
+            
+            u = num/den
+            if den == 0:
+                continue
+
+
+            x = x1 + t*(x2 - x1)
+
+            y = y1 + t*(y2 - y1)
+
+            points.append([x,y])
+
+        if len(points) == 0:
+            return None    
+        m = self.returnClosest(points)
+            
+            
+        
+        return points[m]
+
+
+
         
 
-        if y >= 0: #if its on the target rail
-            self.targetPoint = [x,y]
-            
-        elif y < self.topOfTargetRail: #above target rail
-            x  = (y - self.f.x[1]+self.f.x[0]*m)/m
-            self.targetPoint = [x,self.topOfTargetRail_y]
+
+    def returnClosest(self,points):
+        distances = []
+        for point in points:
+            #calculate the distance
+            d = ((point[0]-self.f.x[0])**2+(point[1]-self.f.x[1])**2)**.5
+            distances.append(d)
+        return distances.index(min(distances))
+        
             
 
-        elif y > self.bottomOfTargetRail: #Below target rail
-            x  = (y - self.f.x[1]+self.f.x[0]*m)/m
-            self.targetPoint = [x,self.bottomOfBottomRail_y]
+
+    def calculateTargetPoint(self):
+
+        
+        point = self.returnPointOfIntersection()
+
+        
+        if point != None:
+            self.targetPoint = point
+
+        
           
     
     def applyMask(self, frame, lower, upper, window):  # Apply the mask
@@ -212,18 +275,26 @@ class Tracker():
     def calculateCommand(self):  
 
         if self.targetPositions[0] > self.targetPositions[1]:
-            print("DOWN")
+            pass
+            #print("DOWN")
+            #self.sendCommandToMCU("s")
+            #self.sendCommandToMCU("l")
         elif self.targetPositions[0] < self.targetPositions[1]:
-            print("UP")
+            pass
+            #print("UP")
+            #self.sendCommandToMCU("s")
+            #self.sendCommandToMCU("r")
         else: 
-            print("STAY")
+            #self.sendCommandToMCU("s")
+            #print("STAY")
+            pass
 
 
     def sendCommandToMCU(self,command):
-        self.ser.write(command)
+        self.ser.write(str.encode(command))
 
     def initializeSerialPort(self):
-        self.ser = serial.Serial('COM5')
+        self.ser = serial.Serial('COM3')
 
     def closeSerialPort():
         self.ser.close
@@ -242,7 +313,8 @@ class Tracker():
 
         print(response)
 
-
+    def autoHome(self):
+        pass
 
     def openWindow(self, windowName, l=960, w=540):
         cv2.namedWindow(windowName)
