@@ -26,6 +26,7 @@ while(True):
     #track.checkESPState()
     track.returnTrackbarPosition("Trackbars")
     track.setFrame()
+    
     #time.sleep(.01)            
 
     ball_mask = track.applyMask(track.currentFrame,
@@ -36,6 +37,7 @@ while(True):
 
     track.calculateBall(ball_mask)
     track.findTarget(target_mask)
+    track.drawBoundaries()
     track.showFrame()
     
     track.calculateCommand()
@@ -54,4 +56,4 @@ cv2.destroyAllWindows()
 track.closeSerialPort()
 
 
-#loop.py -f data\test3.mkv 
+#loop.py -f data\test4.mkv 

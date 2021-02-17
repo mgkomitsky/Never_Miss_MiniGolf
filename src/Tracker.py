@@ -227,6 +227,7 @@ class Tracker():
 
             y = y1 + t*(y2 - y1)
 
+            
             points.append([x,y])
 
         if len(points) == 0:
@@ -317,5 +318,15 @@ class Tracker():
         pass
 
     def openWindow(self, windowName, l=960, w=540):
+
+
         cv2.namedWindow(windowName)
         cv2.resizeWindow(windowName, l, w)
+
+
+    def drawBoundaries(self):
+        for line in self.boundaries:
+            cv2.line(       self.currentFrame, 
+            (int(line[0]), int(line[1])) ,
+            (int(line[2]), int(line[3])),      
+            (150,255,120) ,2)
