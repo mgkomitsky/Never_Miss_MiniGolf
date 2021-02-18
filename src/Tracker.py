@@ -12,20 +12,20 @@ import random
 class Tracker():
 
     def __init__(self):
-
         self.targetRail_x = 1500
         self.topOfTargetRail_y = 0
         self.bottomOfTargetRail_y = 2000
 
         self.targetPoint = None
+        self.targetPoints = [[0,0],[400,400]]
 
       
 
 
-        self.targetPositions = [0,0]
+        self.holeLocation = None
 
 
-        self.boundaries = [[0,100,800,100],[0,500,800,500],[800,100,800,500]]   #This is going to be an array of line segments         [[x3,y3,x4,y4],[x3,y3,x4,y4]]
+        self.boundaries = [[0,100,800,100],[0,500,800,500],[800,100,800,500]] 
 
 
 
@@ -113,11 +113,14 @@ class Tracker():
         cv2.circle(self.currentFrame, (int(contour_x), int(contour_y)),int(contour_radius), (0, 255, 0), 2) #Draw ball 
         cv2.circle(self.currentFrame, (int(self.f.x[0]), int(self.f.x[1])), int(contour_radius), (0, 255, 255), 2)   #Drawing Kalman tracking ball
         self.calculateTargetPoint()
-        self.drawLineToTargetPoint()
+        self.drawLineToTargetPoints()
         
 
     def drawLineToTargetPoint(self):  # May want to turn this into a function that draws a line between all points in a target point array for the bounce
         
+
+        
+
         if self.targetPoint != None:
         
             x,y = self.targetPoint
@@ -130,6 +133,24 @@ class Tracker():
             (0,255,120) ,2)
         
 
+    def drawLineToTargetPoints(self):
+        
+        currentPoint = [self.f.x[0],self.f.x[1]]
+        for point in self.targetPoints:
+            nextPoint = point
+            
+            
+                
+
+                
+                            #Draw the line to the target point
+            cv2.line(       self.currentFrame, 
+            (int(currentPoint[0]), int(currentPoint[1])) ,
+            (int(nextPoint[0]), int(nextPoint[1])),      
+            (0,255,120) ,1)
+            currentPoint = point
+        
+
 
     def findTarget(self, mask):
 
@@ -139,11 +160,11 @@ class Tracker():
             contours = max(contours, key=cv2.contourArea)
 
             ((contour_x, contour_y), contour_radius) = cv2.minEnclosingCircle(contours)
+
+        self.holeLocation = [contour_x,contour_y]
        
-        if self.targetPoint != None:
-            self.targetPositions[1] = contour_y
-            self.targetPositions[0] = self.targetPoint[1]
-        return contour_y
+
+        
         
     def findContours(self, mask):
         contours = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -154,16 +175,7 @@ class Tracker():
        
         return contours
 
-    def bounceCalculator(self):
-        #If the target is not on the rail (x coordinate) , then it needs to calculate where it's going to go.
-        #set x to the current target point
-        #flip the slope
-        #calculate next target point
-        #Change target point if necessary
-        
     
-        
-        pass
 
     def resetFilter(self):
         self.f = MiniGolfKalmanFilter.MiniGolfKalmanFilter()
@@ -194,22 +206,27 @@ class Tracker():
     def calculateSlope(self):
         return (self.f.x[3]/self.f.x[2])
 
-    def returnPointOfIntersection(self):
+    def returnPointOfIntersection(self,x1,y1,x2,y2):
         #Iterate thorugh set of defined lines
         #Calculate target point
         self.targetPoint = None
         points = []
+
+    
         
         for line in self.boundaries:
             
             
-            x1,y1,x2,y2 = self.f.x[0],self.f.x[1],self.f.x[0]+self.f.x[2],self.f.x[1]+self.f.x[3]
+            
+               
+            
             
             x3,y3,x4,y4 = line[0],line[1],line[2],line[3]
             #t
 
             num =  (x1 - x3)*(y3 - y4)-(y1 - y3)*(x3 - x4)
             den = (x1 - x2)*(y3 - y4) - (y1 - y2)*(x3 - x4)
+
             if den == 0:
                 continue
             t = num/den
@@ -230,19 +247,34 @@ class Tracker():
             #print(t,u)
             if u >= 0 and u <= 1 and t >= 0:
                 points.append([x,y])
+            
 
         if len(points) == 0:
             return None    
-        m = self.returnClosest(points)
-            
-        print(points)
-        
-        return points[m]
-
-
 
         
 
+        indexes = self.returnClosest(points)
+
+        if len(indexes) > 1:
+            indexes = self.returnClosest(points)[1]
+        else:
+            indexes = self.returnClosest(points)[0]
+
+        
+        
+        
+        
+    
+        point = [int(points[indexes][0])   , int(points[indexes][1])  ]
+       
+        return point
+        #return points[m]
+
+
+
+        
+    
 
     def returnClosest(self,points):
         distances = []
@@ -250,22 +282,87 @@ class Tracker():
             #calculate the distance
             d = ((point[0]-self.f.x[0])**2+(point[1]-self.f.x[1])**2)**.5
             distances.append(d)
-        return distances.index(min(distances))
+
+        
+      
+
+        indexes = []
+        for x in range(len(distances)):
+            indexes.append(x)
+            
+                
+        for x in range(len(distances)):
+            already_sorted = True
+
+            for y in range(len(distances)-1):
+                if distances[y] > distances[y+1]:
+                    tmp = distances[y]
+                    distances[y] = distances[y+1]
+                    distances[y+1] = tmp
+
+                    tmp = indexes[y]
+                    indexes[y] = indexes[y+1]
+                    indexes[y+1] = tmp
+                    already_sorted = False
+
+                    
+                    
+
+            if already_sorted:
+                break
+
+        
+        
+        return indexes
         
             
 
+    def norm(self,a,b):
+        magnitude  = (a**2 + b**2)**.5
+        x = a/magnitude 
+        y = b/magnitude
+        
+
+        return [x,y]
 
     def calculateTargetPoint(self):
 
+        self.targetPoints = []
+        point = self.returnPointOfIntersection(self.f.x[0],self.f.x[1],self.f.x[0]+self.f.x[2],self.f.x[1]+self.f.x[3])
         
-        point = self.returnPointOfIntersection()
-
+        
+        '''self.targetPoints = []
+        velocity = self.norm(self.f.x[2],self.f.x[3])
+        point = self.returnPointOfIntersection(self.f.x[0],self.f.x[1],velocity[0],velocity[1])'''
         
         if point != None:
-            self.targetPoint = point
+            
+            self.targetPoints.append(point)
+          
+           
+            if point[0] < 800:
+                
+                
+                velocity = [self.f.x[2],self.f.x[3]]    
+                velocity[1] = -velocity[1]
+                newPosition = self.returnPointOfIntersection(point[0],point[1],point[0]+velocity[0],point[1]+velocity[1])
+                self.targetPoints.append(newPosition)
+                
+                
+                    
+                    
+
 
         
-          
+    #def bounceCalculator(self):
+        #If the target is not on the rail (x coordinate) , then it needs to calculate where it's going to go.
+        #set x to the current target point
+        #flip the slope
+        #calculate next target point
+        #Change target point if necessary
+        
+        
+        
     
     def applyMask(self, frame, lower, upper, window):  # Apply the mask
         FRAME_IN_HSV_SPACE = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -274,22 +371,27 @@ class Tracker():
         cv2.imshow(window, mask)
         return mask
 
-    def calculateCommand(self):  
-
-        if self.targetPositions[0] > self.targetPositions[1]:
-            pass
-            #print("DOWN")
-            #self.sendCommandToMCU("s")
-            #self.sendCommandToMCU("l")
-        elif self.targetPositions[0] < self.targetPositions[1]:
-            pass
-            #print("UP")
-            #self.sendCommandToMCU("s")
-            #self.sendCommandToMCU("r")
+    def calculateCommand(self):
+        if self.targetPoint != None:  
+        
+            if self.targetPoint[1] > self.holeLocation[1]:
+                
+                #print("DOWN")
+                pass
+                #self.sendCommandToMCU("s")
+                #self.sendCommandToMCU("l")
+            elif self.targetPoint[1] < self.holeLocation[1]:
+                pass
+                #print("UP")
+                #self.sendCommandToMCU("s")
+                #self.sendCommandToMCU("r")
+            else: 
+                pass
+                #self.sendCommandToMCU("s")
+                #print("STAY")
         else: 
-            #self.sendCommandToMCU("s")
-            #print("STAY")
-            pass
+            pass#print("STAY")
+            
 
 
     def sendCommandToMCU(self,command):
@@ -330,4 +432,8 @@ class Tracker():
             cv2.line(       self.currentFrame, 
             (int(line[0]), int(line[1])) ,
             (int(line[2]), int(line[3])),      
-            (150,255,120) ,2)
+            (150,255,120) ,1)
+
+
+    def autoSetBoundaries(self):
+        pass
