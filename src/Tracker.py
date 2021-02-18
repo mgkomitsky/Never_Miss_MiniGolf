@@ -297,13 +297,11 @@ class Tracker():
 
         self.targetPoints = []
         points = self.returnAllPointsOfIntersection(self.f.x[0],self.f.x[1],self.f.x[0]+self.f.x[2],self.f.x[1]+self.f.x[3])
-        #print("closest point: ",self.returnClosest(points))
-        
-        
         
         initialPoint = self.returnClosest(points)
-        if type(initialPoint) != None:
+        if type(initialPoint) != str:
             self.targetPoints.append(initialPoint)
+            
             
             
 
@@ -333,47 +331,13 @@ class Tracker():
             except TypeError:
                 return
             nextPoint = self.returnClosest(allPoints)
-            if nextPoint != str:
+            if type(nextPoint) != str:
                 self.targetPoints.append(nextPoint)
             initialPoint = nextPoint
             if initialPoint[0] == 800:
                 break
             
 
-
-       
-
-        
-
-        #while numberOfBounces < 5:
-                #velocity[1] = -velocity[1]
-
-
-                #allPoints = self.returnAllPointsOfIntersection(initialPoint[0],initialPoint[1],initialPoint[0]+velocity[0],initialPoint[1]+velocity[1])  
-                #print(allPoints)
-
-                
-                #self.targetPoints.append(self.returnClosest(allPoints))
-                
-
-                #initialPoint = self.returnClosest(allPoints)
-                #numberOfBounces += 1
-                #xCoordinateOfFinalTargetPoint = self.targetPoints[-1][0]
-                #print(xCoordinateOfFinalTargetPoint)
-                #print(self.targetPoints)
-                
-                
-                
-                
-
-                    
-
-
-        
-  
-        
-        
-    
     def applyMask(self, frame, lower, upper, window):  # Apply the mask
         FRAME_IN_HSV_SPACE = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         mask = cv2.inRange(FRAME_IN_HSV_SPACE,
@@ -382,29 +346,31 @@ class Tracker():
         return mask
 
     def calculateCommand(self):
-        print(self.targetPoints)
-        index = len(self.targetPoints)-1
+        #print(self.targetPoints)
+        index = len(self.targetPoints)
         
 
-        '''if self.targetPoints[index] != str:  
+        if index > 0:
         
-            if self.targetPoints[index][1] > self.holeLocation[1]:
-                
+            if self.targetPoints[-1][1] > self.holeLocation[1]:
+                    
                 print("DOWN")
-                pass
-                #self.sendCommandToMCU("s")
-                #self.sendCommandToMCU("l")
-            elif self.targetPoints[index][1] < self.holeLocation[1]:
-                pass
-                print("UP")
-                #self.sendCommandToMCU("s")
-                #self.sendCommandToMCU("r")
-            else: 
                 
-                #self.sendCommandToMCU("s")
+                    #self.sendCommandToMCU("s")
+                    #self.sendCommandToMCU("l")
+            elif self.targetPoints[-1][1] < self.holeLocation[1]:
+                
+                print("UP")
+                    #self.sendCommandToMCU("s")
+                    #self.sendCommandToMCU("r")
+            else: 
+                    
+                    #self.sendCommandToMCU("s")
                 print("STAY")
-        else: 
-            print("STAY")'''
+
+        else:
+            print("STAY")
+    
             
 
 
