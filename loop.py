@@ -41,12 +41,12 @@ while(True):
     track.showFrame()
     
     track.calculateCommand()
-    #track.returnPointOfIntersection()
     
     
     
     
-    #time.sleep(.1)
+    
+    
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break

@@ -8,6 +8,7 @@ import serial
 from filterpy.common import Q_discrete_white_noise
 from src import MiniGolfKalmanFilter
 import random
+import time
 
 class Tracker():
 
@@ -17,7 +18,7 @@ class Tracker():
         self.bottomOfTargetRail_y = 2000
 
         self.targetPoint = None
-        self.targetPoints = [[0,0],[400,400]]
+        self.targetPoints = []
 
       
 
@@ -116,21 +117,7 @@ class Tracker():
         self.drawLineToTargetPoints()
         
 
-    def drawLineToTargetPoint(self):  # May want to turn this into a function that draws a line between all points in a target point array for the bounce
-        
-
-        
-
-        if self.targetPoint != None:
-        
-            x,y = self.targetPoint
-
-            
-                          #Draw the line to the target point
-            cv2.line(       self.currentFrame, 
-            (int(self.f.x[0]), int(self.f.x[1])) ,
-            (int(x), int(y)),      
-            (0,255,120) ,2)
+   
         
 
     def drawLineToTargetPoints(self):
@@ -160,7 +147,7 @@ class Tracker():
             contours = max(contours, key=cv2.contourArea)
 
             ((contour_x, contour_y), contour_radius) = cv2.minEnclosingCircle(contours)
-
+        
         self.holeLocation = [contour_x,contour_y]
        
 
@@ -267,7 +254,7 @@ class Tracker():
         
     
         point = [int(points[indexes][0])   , int(points[indexes][1])  ]
-       
+        print(point)
         return point
         #return points[m]
 
@@ -331,25 +318,48 @@ class Tracker():
         point = self.returnPointOfIntersection(self.f.x[0],self.f.x[1],self.f.x[0]+self.f.x[2],self.f.x[1]+self.f.x[3])
         
         
-        '''self.targetPoints = []
-        velocity = self.norm(self.f.x[2],self.f.x[3])
-        point = self.returnPointOfIntersection(self.f.x[0],self.f.x[1],velocity[0],velocity[1])'''
+     
         
         if point != None:
             
             self.targetPoints.append(point)
           
            
-            if point[0] < 800:
+            """if point[0] < 800:
                 
                 
                 velocity = [self.f.x[2],self.f.x[3]]    
                 velocity[1] = -velocity[1]
                 newPosition = self.returnPointOfIntersection(point[0],point[1],point[0]+velocity[0],point[1]+velocity[1])
-                self.targetPoints.append(newPosition)
+                self.targetPoints.append(newPosition)"""
+                
+
+
+
+
+            velocity = [self.f.x[2],self.f.x[3]]    #Initial velocity
+            newPosition = point
+            
+            jack = 1
+            while self.targetPoints[len(self.targetPoints)-1][0] < 800:
+                
+                velocity[1] = -velocity[1]
+                nextTarget = self.returnPointOfIntersection(newPosition[0],newPosition[1],newPosition[0]+velocity[0],newPosition[1]+velocity[1])    #Returns [x,y]
+                self.targetPoints.append(nextTarget)
+                #print(nextTarget)
+                newPosition = nextTarget
+                jack += 1
+                #print(self.targetPoints)
                 
                 
-                    
+                
+                
+                
+                
+                
+                
+                
+
                     
 
 
