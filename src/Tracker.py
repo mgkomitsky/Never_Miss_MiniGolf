@@ -14,20 +14,19 @@ import copy
 class Tracker():
 
     def __init__(self):
-        self.targetRail_x = 1500
-        self.topOfTargetRail_y = 0
-        self.bottomOfTargetRail_y = 2000
+        
 
         
         self.targetPoints = []
+        self.boundaries = [[0,100,800,100],[0,500,800,500],[800,100,800,500]]
 
-        self.jack = 1
+        
 
 
         self.holeLocation = None
 
 
-        self.boundaries = [[0,100,800,100],[0,500,800,500],[800,100,800,500]] 
+         
 
 
 
@@ -35,21 +34,11 @@ class Tracker():
         self.ser = None
         self.cap = None
         self.currentFrame = None
-        
-        
         cv2.namedWindow("Video", cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
-
         cv2.namedWindow("Mask", cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
-
         cv2.namedWindow("Target Mask", cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
-       
-       
-        # These variables are for the mask
-        
         self.BALL_HSV = [[0, 0, 0], [255, 255, 255]]
         self.TARGET_HSV = [[0, 0, 0], [255, 255, 255]]
-    
-        
         self.f = MiniGolfKalmanFilter.MiniGolfKalmanFilter(intial_state=[0,0,1,0])
 
     def nothing(self, x):
@@ -114,7 +103,7 @@ class Tracker():
         ((contour_x, contour_y), contour_radius) = self.checkStatusOfContour(contours)
         cv2.circle(self.currentFrame, (int(contour_x), int(contour_y)),int(contour_radius), (0, 255, 0), 2) #Draw ball 
         cv2.circle(self.currentFrame, (int(self.f.x[0]), int(self.f.x[1])), int(contour_radius), (0, 255, 255), 2)   #Drawing Kalman tracking ball
-        self.calculateTargetPoint()
+        self.calculateTargetPoints()
         
         
 
@@ -126,8 +115,10 @@ class Tracker():
         currentPoint = [self.f.x[0],self.f.x[1]]
 
         myPoints = copy.deepcopy(self.targetPoints)
-        print(myPoints)
+        
         for point in myPoints:
+            if type(point) == str:
+                break
             nextPoint = point
             
             
@@ -197,33 +188,21 @@ class Tracker():
     def calculateSlope(self):
         return (self.f.x[3]/self.f.x[2])
 
-    def returnPointOfIntersection(self,x1,y1,x2,y2):
-        #Iterate thorugh set of defined lines
-        #Calculate target point
+    def returnAllPointsOfIntersection(self,x1,y1,x2,y2):
+        
         
         points = []
-
-    
-        
         for line in self.boundaries:
-            
-            
-            
-               
-            
-            
+    
             x3,y3,x4,y4 = line[0],line[1],line[2],line[3]
             #t
-
             num =  (x1 - x3)*(y3 - y4)-(y1 - y3)*(x3 - x4)
             den = (x1 - x2)*(y3 - y4) - (y1 - y2)*(x3 - x4)
 
             if den == 0:
                 continue
             t = num/den
-
             #u
-
             num =  (x2 - x1)*(y1 - y3)-(y2 - y1)*(x1 - x3)
             den = (x1 - x2)*(y3 - y4) - (y1 - y2)*(x3 - x4)
             
@@ -231,43 +210,52 @@ class Tracker():
             if den == 0:
                 continue
 
-
             x = x1 + t*(x2 - x1)
-
             y = y1 + t*(y2 - y1)
-            #print(t,u)
+
+            position = [x1,y1] 
+
+            if self.isPointOnBoundary(position,[x3,y3],[x4,y4]):
+                
+                continue
+
             if u >= 0 and u <= 1 and t >= 0:
                 points.append([x,y])
+
+            
             
 
-        if len(points) == 0:
+        '''if len(points) == 0:
             return None    
-
-        
-
-        indexes = self.returnClosest(points)
-
-        if len(indexes) > 1:
-            indexes = self.returnClosest(points)[1]
-        else:
-            indexes = self.returnClosest(points)[0]
-
-        
-        
-        
-        
-    
+        indexes = self.returnClosest(points)[0]
         point = [int(points[indexes][0])   , int(points[indexes][1])  ]
-        print(point)
-        return point
+        print(point)'''
+
+        return points
         
 
 
 
+    def isPointOnBoundary(self,point,a,b):
+    #We need to form 2 vectors
+        x = [a[0]-point[0],a[1]-point[1]]   #Point to a
+        y = [b[0]-point[0],b[1]-point[1]]    #Point to b
+        c = np.cross(x,y)
         
+        if c != 0:
+            #print("False")
+            return False
+        else:
+            #print("True")
+            return True
+
     
 
     def returnClosest(self,points):
+        
+        if len(points) == 0:
+            return "No Points"
+        
         distances = []
         for point in points:
             #calculate the distance
@@ -297,14 +285,10 @@ class Tracker():
                     already_sorted = False
 
                     
-                    
-
             if already_sorted:
                 break
-
         
-        
-        return indexes
+        return points[indexes[0]]
         
             
 
@@ -316,49 +300,45 @@ class Tracker():
 
         return [x,y]
 
-    def calculateTargetPoint(self):
+    def calculateTargetPoints(self):
 
         self.targetPoints = []
-        point = self.returnPointOfIntersection(self.f.x[0],self.f.x[1],self.f.x[0]+self.f.x[2],self.f.x[1]+self.f.x[3])
+        points = self.returnAllPointsOfIntersection(self.f.x[0],self.f.x[1],self.f.x[0]+self.f.x[2],self.f.x[1]+self.f.x[3])
+        #print("closest point: ",self.returnClosest(points))
+        
+        
+        
+        initialPoint = self.returnClosest(points)
+        if type(initialPoint) != str:
+            self.targetPoints.append(initialPoint)
+            
+            
+        '''velocity = [self.f.x[2],self.f.x[3]]    #Initial velocity
+        initialPoint = self.returnClosest(points)
+            
+        
         print(self.targetPoints)
         
+
+        try:
+            xCoordinateOfFinalTargetPoint = self.targetPoints[-1][0]
+        except IndexError:
+            print("self.targetPoints is empty")
+
+
         
-     
-        
-        if point != None:
-            
-            self.targetPoints.append(point)
-            print(self.targetPoints)
-          
-           
-            """if point[0] < 800:
-                
-                
-                velocity = [self.f.x[2],self.f.x[3]]    
+
+            while xCoordinateOfFinalTargetPoint < 800:
                 velocity[1] = -velocity[1]
-                newPosition = self.returnPointOfIntersection(point[0],point[1],point[0]+velocity[0],point[1]+velocity[1])
-                self.targetPoints.append(newPosition)"""
-                
-
-
-
-
-            velocity = [self.f.x[2],self.f.x[3]]    #Initial velocity
-            newPosition = point
-            self.jack = 1
-            print("1")
-            while self.targetPoints[len(self.targetPoints)-1][0] < 800:
-                print("2")
-                velocity[1] = -velocity[1]
-                nextTarget = self.returnPointOfIntersection(newPosition[0],newPosition[1],newPosition[0]+velocity[0],newPosition[1]+velocity[1])    #Returns [x,y]
+                nextTarget = self.returnAllPointsOfIntersection(initialPoint[0],initialPoint[1],initialPoint[0]+velocity[0],initialPoint[1]+velocity[1])    #Returns [x,y]
                 self.targetPoints.append(nextTarget)
-                #print(nextTarget)
-                newPosition = nextTarget
-                self.jack += 1
-                time.sleep(1)
+                initialPoint = nextTarget'''
+        
+        
                 
-                #print(len(self.targetPoints),self.targetPoints[len(self.targetPoints)-1][0] < 800)
-            self.drawLineToTargetPoints()
+        self.calculateBounce(initialPoint)
+        
+        self.drawLineToTargetPoints()
             
 
             
@@ -368,7 +348,46 @@ class Tracker():
                 
                 
                 
+    def calculateBounce(self,initialPoint):
+
+        velocity = [self.f.x[2],self.f.x[3]]
+        
+        
+        while True:
+            velocity[1] = -velocity[1]
+            try:
                 
+                allPoints = self.returnAllPointsOfIntersection(initialPoint[0],initialPoint[1],initialPoint[0]+velocity[0],initialPoint[1]+velocity[1])
+            except TypeError:
+                return
+            nextPoint = self.returnClosest(allPoints)
+            self.targetPoints.append(nextPoint)
+            initialPoint = nextPoint
+            if initialPoint[0] == 800:
+                break
+            
+
+
+       
+
+        
+
+        #while numberOfBounces < 5:
+                #velocity[1] = -velocity[1]
+
+
+                #allPoints = self.returnAllPointsOfIntersection(initialPoint[0],initialPoint[1],initialPoint[0]+velocity[0],initialPoint[1]+velocity[1])  
+                #print(allPoints)
+
+                
+                #self.targetPoints.append(self.returnClosest(allPoints))
+                
+
+                #initialPoint = self.returnClosest(allPoints)
+                #numberOfBounces += 1
+                #xCoordinateOfFinalTargetPoint = self.targetPoints[-1][0]
+                #print(xCoordinateOfFinalTargetPoint)
+                #print(self.targetPoints)
                 
                 
                 
