@@ -131,10 +131,9 @@ class Tracker():
             (int(nextPoint[0]), int(nextPoint[1])),      
             (0,255,120) ,1)
             currentPoint = point
-        
+    
 
-
-    def findTarget(self, mask):
+    def findHole(self, mask):
 
         contours = self.findContours(mask)
         contour_y = 0
@@ -223,13 +222,7 @@ class Tracker():
                 points.append([x,y])
 
             
-            
 
-        '''if len(points) == 0:
-            return None    
-        indexes = self.returnClosest(points)[0]
-        point = [int(points[indexes][0])   , int(points[indexes][1])  ]
-        print(point)'''
 
         return points
         
@@ -309,31 +302,11 @@ class Tracker():
         
         
         initialPoint = self.returnClosest(points)
-        if type(initialPoint) != str:
+        if type(initialPoint) != None:
             self.targetPoints.append(initialPoint)
             
             
-        '''velocity = [self.f.x[2],self.f.x[3]]    #Initial velocity
-        initialPoint = self.returnClosest(points)
-            
-        
-        print(self.targetPoints)
-        
 
-        try:
-            xCoordinateOfFinalTargetPoint = self.targetPoints[-1][0]
-        except IndexError:
-            print("self.targetPoints is empty")
-
-
-        
-
-            while xCoordinateOfFinalTargetPoint < 800:
-                velocity[1] = -velocity[1]
-                nextTarget = self.returnAllPointsOfIntersection(initialPoint[0],initialPoint[1],initialPoint[0]+velocity[0],initialPoint[1]+velocity[1])    #Returns [x,y]
-                self.targetPoints.append(nextTarget)
-                initialPoint = nextTarget'''
-        
         
                 
         self.calculateBounce(initialPoint)
@@ -356,12 +329,12 @@ class Tracker():
         while True:
             velocity[1] = -velocity[1]
             try:
-                
                 allPoints = self.returnAllPointsOfIntersection(initialPoint[0],initialPoint[1],initialPoint[0]+velocity[0],initialPoint[1]+velocity[1])
             except TypeError:
                 return
             nextPoint = self.returnClosest(allPoints)
-            self.targetPoints.append(nextPoint)
+            if nextPoint != str:
+                self.targetPoints.append(nextPoint)
             initialPoint = nextPoint
             if initialPoint[0] == 800:
                 break
@@ -409,25 +382,29 @@ class Tracker():
         return mask
 
     def calculateCommand(self):
-        if self.targetPoint != None:  
+        print(self.targetPoints)
+        index = len(self.targetPoints)-1
         
-            if self.targetPoint[1] > self.holeLocation[1]:
+
+        '''if self.targetPoints[index] != str:  
+        
+            if self.targetPoints[index][1] > self.holeLocation[1]:
                 
-                #print("DOWN")
+                print("DOWN")
                 pass
                 #self.sendCommandToMCU("s")
                 #self.sendCommandToMCU("l")
-            elif self.targetPoint[1] < self.holeLocation[1]:
+            elif self.targetPoints[index][1] < self.holeLocation[1]:
                 pass
-                #print("UP")
+                print("UP")
                 #self.sendCommandToMCU("s")
                 #self.sendCommandToMCU("r")
             else: 
-                pass
+                
                 #self.sendCommandToMCU("s")
-                #print("STAY")
+                print("STAY")
         else: 
-            pass#print("STAY")
+            print("STAY")'''
             
 
 

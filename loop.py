@@ -36,11 +36,11 @@ while(True):
                                 track.TARGET_HSV[0], track.TARGET_HSV[1], "Target Mask")
 
     track.calculateBall(ball_mask)
-    track.findTarget(target_mask)
+    track.findHole(target_mask)
     track.drawBoundaries()
     track.showFrame()
     
-    #track.calculateCommand()
+    track.calculateCommand()
     
     
     
