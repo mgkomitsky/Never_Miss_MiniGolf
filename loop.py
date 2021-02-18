@@ -40,7 +40,7 @@ while(True):
     track.drawBoundaries()
     track.showFrame()
     
-    track.calculateCommand()
+    #track.calculateCommand()
     
     
     

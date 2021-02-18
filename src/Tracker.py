@@ -9,6 +9,7 @@ from filterpy.common import Q_discrete_white_noise
 from src import MiniGolfKalmanFilter
 import random
 import time
+import copy
 
 class Tracker():
 
@@ -17,10 +18,10 @@ class Tracker():
         self.topOfTargetRail_y = 0
         self.bottomOfTargetRail_y = 2000
 
-        self.targetPoint = None
+        
         self.targetPoints = []
 
-      
+        self.jack = 1
 
 
         self.holeLocation = None
@@ -114,7 +115,7 @@ class Tracker():
         cv2.circle(self.currentFrame, (int(contour_x), int(contour_y)),int(contour_radius), (0, 255, 0), 2) #Draw ball 
         cv2.circle(self.currentFrame, (int(self.f.x[0]), int(self.f.x[1])), int(contour_radius), (0, 255, 255), 2)   #Drawing Kalman tracking ball
         self.calculateTargetPoint()
-        self.drawLineToTargetPoints()
+        
         
 
    
@@ -123,7 +124,10 @@ class Tracker():
     def drawLineToTargetPoints(self):
         
         currentPoint = [self.f.x[0],self.f.x[1]]
-        for point in self.targetPoints:
+
+        myPoints = copy.deepcopy(self.targetPoints)
+        print(myPoints)
+        for point in myPoints:
             nextPoint = point
             
             
@@ -196,7 +200,7 @@ class Tracker():
     def returnPointOfIntersection(self,x1,y1,x2,y2):
         #Iterate thorugh set of defined lines
         #Calculate target point
-        self.targetPoint = None
+        
         points = []
 
     
@@ -256,7 +260,7 @@ class Tracker():
         point = [int(points[indexes][0])   , int(points[indexes][1])  ]
         print(point)
         return point
-        #return points[m]
+        
 
 
 
@@ -316,6 +320,7 @@ class Tracker():
 
         self.targetPoints = []
         point = self.returnPointOfIntersection(self.f.x[0],self.f.x[1],self.f.x[0]+self.f.x[2],self.f.x[1]+self.f.x[3])
+        print(self.targetPoints)
         
         
      
@@ -323,6 +328,7 @@ class Tracker():
         if point != None:
             
             self.targetPoints.append(point)
+            print(self.targetPoints)
           
            
             """if point[0] < 800:
@@ -339,17 +345,25 @@ class Tracker():
 
             velocity = [self.f.x[2],self.f.x[3]]    #Initial velocity
             newPosition = point
-            
-            jack = 1
+            self.jack = 1
+            print("1")
             while self.targetPoints[len(self.targetPoints)-1][0] < 800:
-                
+                print("2")
                 velocity[1] = -velocity[1]
                 nextTarget = self.returnPointOfIntersection(newPosition[0],newPosition[1],newPosition[0]+velocity[0],newPosition[1]+velocity[1])    #Returns [x,y]
                 self.targetPoints.append(nextTarget)
                 #print(nextTarget)
                 newPosition = nextTarget
-                jack += 1
-                #print(self.targetPoints)
+                self.jack += 1
+                time.sleep(1)
+                
+                #print(len(self.targetPoints),self.targetPoints[len(self.targetPoints)-1][0] < 800)
+            self.drawLineToTargetPoints()
+            
+
+            
+
+
                 
                 
                 
@@ -364,13 +378,7 @@ class Tracker():
 
 
         
-    #def bounceCalculator(self):
-        #If the target is not on the rail (x coordinate) , then it needs to calculate where it's going to go.
-        #set x to the current target point
-        #flip the slope
-        #calculate next target point
-        #Change target point if necessary
-        
+  
         
         
     
