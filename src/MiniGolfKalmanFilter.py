@@ -8,11 +8,11 @@ class MiniGolfKalmanFilter(KalmanFilter):
     MiniGolfKalmanFilter is a wrapper of the KalmanFilter class. It assumes 2 dimensions and standard newtonian physics.
     '''
     def __init__(self,
-        intial_state=np.array([0.,250.,100.,0.]),
+        intial_state=np.array([0.,250.,0.,0.]),
         fc = 1,
         dt = 1,
-        R_val = .01,
-        Q_val = 0,
+        R_val = .1,
+        Q_val = 0.0,
         y_walls = [-10,10],
         P = .01
         ):
@@ -42,22 +42,9 @@ class MiniGolfKalmanFilter(KalmanFilter):
     def print_state(self):
         print("\tcurrent position: ({:.2f},{:.2f}) velocity: ({:.2f},{:.2f})".format(*self.x))
 
-    def flip_y_about(self,y_val):
-        '''This flips the y value around the set target y_val, and flips the velocity'''
-        x,y,dx,dy = self.x
-        y = 2*y_val - y
-        dy = -1*dy
-        self.x = np.array([x,y,dx,dy])
+    
 
-    def predict_and_bounce(self):
-        '''mockup of how the bouncing might work'''
-        self.predict()
-        x,y,dx,dy = self.xs
-        bottom_wall, top_wall = sorted(self.y_walls)
-        if y > top_wall:
-            self.flip_y_about(top_wall)
-        if y < bottom_wall:
-            self.flip_y_about(bottom_wall)
+    
 
 if __name__=="__main__":    
     print("testing kalman filter wrapper")

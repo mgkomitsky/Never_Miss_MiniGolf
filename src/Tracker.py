@@ -18,7 +18,7 @@ class Tracker():
 
     def __init__(self):
 
-        
+        self.previousState = []
         self.markerData = np.full(3,None).tolist()
         self.targetRailX = 0
         self.topRailY = 0
@@ -99,7 +99,7 @@ class Tracker():
         #self.currentFrame = cv2.rotate(self.currentFrame, rotateCode = cv2.ROTATE_90_COUNTERCLOCKWISE)
 
     def calculateBall(self, mask):
-
+        self.previousState = self.f.x
         contours = self.findContours(mask)
         self.f.predict()
         ((contour_x, contour_y), contour_radius) = self.checkStatusOfContour(contours)
@@ -158,6 +158,7 @@ class Tracker():
 
             if contour_radius < 10:
                 self.resetFilter()
+            
             self.f.update([contour_x, contour_y])
 
             if (self.reset == True):
@@ -292,8 +293,10 @@ class Tracker():
                 self.targetPoints.append(
                     [int(nextPoint[0]), int(nextPoint[1])])
             initialPoint = nextPoint
+            
             if initialPoint[0] == self.targetRailX:
                 break
+        
 
     def applyMask(self, frame, lower, upper, window):  # Apply the mask
         FRAME_IN_HSV_SPACE = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -437,3 +440,9 @@ class Tracker():
 
         self.holeLocation = (self.markerData[2][1][0][0],self.markerData[2][1][0][1])
         cv2.circle(self.currentFrame, self.holeLocation, 4, (0, 0, 255), -1)
+
+    def measureVelocity(self):
+        xVelocity = self.f.x[2] - self.previousState[2]
+        yVelocity = self.f.x[3] - self.previousState[3]
+
+        return [xVelocity,yVelocity]
