@@ -19,13 +19,13 @@ cv2.namedWindow("Trackbars")
 track.drawTrackbars("Trackbars")
 track.setFrame()
 # print(track.boundaries)
-# track.autoSetBoundaries()
+track.autoSetBoundaries()
 # print(track.boundaries)
 
 
 # track.initializeSerialPort()
 
-# track.printMarker()
+#track.printMarker()
 
 
 while(True):
@@ -37,18 +37,18 @@ while(True):
 
     ball_mask = track.applyMask(
         track.currentFrame, track.BALL_HSV[0], track.BALL_HSV[1], "Mask")
-    target_mask = track.applyMask(
-        track.currentFrame, track.TARGET_HSV[0], track.TARGET_HSV[1], "Target Mask")
+    #target_mask = track.applyMask(
+        #track.currentFrame, track.TARGET_HSV[0], track.TARGET_HSV[1], "Target Mask")
     track.calculateBall(ball_mask)
-    track.findHole(target_mask)
+    #track.findHole(target_mask)
 
     track.drawBoundaries()
     track.showFrame()
 
-    track.calculateCommand()
+    #track.calculateCommand()
 
     # print(track.targetPoints)
-
+    
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
