@@ -23,7 +23,7 @@ class Tracker():
         self.targetRailX = 950
         self.topRailY = 0
 
-        self.bottomRailY = 0
+        self.bottomRailY = 500
 
         self.boundaries = [[0, self.topRailY, self.targetRailX, self.topRailY], [0, self.bottomRailY, self.targetRailX, self.bottomRailY], 
         [self.targetRailX, self.topRailY, self.targetRailX, self.bottomRailY]]
@@ -366,38 +366,16 @@ class Tracker():
                      (150, 255, 120), 1)
 
     def autoSetBoundaries(self):
-        # Load the dictionary that was used to generate the markers.
-        dictionary = aruco.Dictionary_get(aruco.DICT_6X6_250)
-
-        # Initialize the detector parameters using default values
-        parameters = aruco.DetectorParameters_create()
-
-        # Detect the markers in the image
-        corners, ids, rejected = aruco.detectMarkers(self.currentFrame, dictionary, parameters=parameters)
-
-        if len(corners) > 0:
-            
-
-            for (corner,markerid) in zip(corners,ids):
-                corners = corner.reshape((4,2))
-                (topLeft, topRight, bottomRight, bottomLeft) = corners
-                self.markerData.append([corners,markerid])
+        self.updateMarkers()
                 
                 
                 
-            print(self.markerData[0][0][0][0])     #[which set][corners or id][which corner][x or y]          
-                
-
-                
-        
-       
-
-
+             #[which marker][corners or id][which corner][x or y]          
 
         
-        self.targetRailX = self.markerData[2][0][0][0]
-        self.topRailY =    self.markerData[2][0][0][1]
-        self.bottomRailY = self.markerData[1][0][1][1]
+        self.targetRailX = self.markerData[0][0][0][0]
+        self.topRailY =    self.markerData[0][0][0][1]
+        self.bottomRailY = self.markerData[2][0][1][1]
 
 
         self.boundaries = [[0, self.topRailY, self.targetRailX, self.topRailY], [0, self.bottomRailY, self.targetRailX, self.bottomRailY], 
@@ -412,3 +390,45 @@ class Tracker():
         markerImage = aruco.drawMarker(dictionary, 2, 200, markerImage, 1)
 
         cv2.imwrite("2.png", markerImage)
+
+    def updateMarkers(self):
+        self.markerData = []
+        dictionary = aruco.Dictionary_get(aruco.DICT_6X6_250)
+
+        # Initialize the detector parameters using defau lt values
+        parameters = aruco.DetectorParameters_create()
+
+        # Detect the markers in the image
+        corners, ids, rejected = aruco.detectMarkers(self.currentFrame, dictionary, parameters=parameters)
+
+    
+        if len(corners) > 0:
+
+            ids = ids.flatten()
+            
+
+            for (corner,markerid) in zip(corners,ids):
+                corners = corner.reshape((4,2))
+                (topLeft, topRight, bottomRight, bottomLeft) = corners
+                
+                self.markerData.insert(markerid,[corners,markerid])
+
+                
+
+
+                topRight = (int(topRight[0]), int(topRight[1]))
+                bottomRight = (int(bottomRight[0]), int(bottomRight[1]))
+                bottomLeft = (int(bottomLeft[0]), int(bottomLeft[1]))
+                topLeft = (int(topLeft[0]), int(topLeft[1]))
+                
+                cX = int((topLeft[0] + bottomRight[0]) / 2.0)
+                cY = int((topLeft[1] + bottomRight[1]) / 2.0)
+                cv2.circle(self.currentFrame, (cX, cY), 4, (0, 0, 255), -1)
+               
+                if markerid == 2:
+                    self.holeLocation = [cX,cY]
+            #print(self.markerData , "\n\n")
+            #time.sleep(1)
+
+
+   

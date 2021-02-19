@@ -18,9 +18,8 @@ track.setupVideoStream(args.file_name)
 cv2.namedWindow("Trackbars")
 track.drawTrackbars("Trackbars")
 track.setFrame()
-# print(track.boundaries)
 track.autoSetBoundaries()
-# print(track.boundaries)
+
 
 
 # track.initializeSerialPort()
@@ -28,26 +27,25 @@ track.autoSetBoundaries()
 #track.printMarker()
 
 
+
 while(True):
-    # print(track.boundaries)
+    
     # track.checkESPState()
-    # track.autoSetBoundaries()
+    track.updateMarkers()
     track.returnTrackbarPosition("Trackbars")
     track.setFrame()
-
-    ball_mask = track.applyMask(
-        track.currentFrame, track.BALL_HSV[0], track.BALL_HSV[1], "Mask")
-    #target_mask = track.applyMask(
-        #track.currentFrame, track.TARGET_HSV[0], track.TARGET_HSV[1], "Target Mask")
+    ball_mask = track.applyMask(track.currentFrame, track.BALL_HSV[0], track.BALL_HSV[1], "Mask")
     track.calculateBall(ball_mask)
-    #track.findHole(target_mask)
-
+    #track.updateMarkers()
     track.drawBoundaries()
     track.showFrame()
-
-    #track.calculateCommand()
-
+    #track.autoSetBoundaries()
+    track.calculateCommand()
+    #print(track.markerData)
+    #time.sleep(1)
     # print(track.targetPoints)
+
+    #print(track.markerData)
     
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
@@ -57,4 +55,4 @@ cv2.destroyAllWindows()
 track.closeSerialPort()
 
 
-# loop.py -f data\test6.mkv
+# loop.py -f data\test8.mkv
