@@ -31,21 +31,19 @@ track.autoSetBoundaries()
 while(True):
     
     # track.checkESPState()
+   
+    
+    track.setFrame()
     track.updateMarkers()
     track.returnTrackbarPosition("Trackbars")
-    track.setFrame()
     ball_mask = track.applyMask(track.currentFrame, track.BALL_HSV[0], track.BALL_HSV[1], "Mask")
     track.calculateBall(ball_mask)
-    #track.updateMarkers()
+    track.findHole()
     track.drawBoundaries()
     track.showFrame()
-    #track.autoSetBoundaries()
+ 
     track.calculateCommand()
-    #print(track.markerData)
-    #time.sleep(1)
-    # print(track.targetPoints)
-
-    #print(track.markerData)
+    
     
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break

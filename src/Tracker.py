@@ -18,9 +18,9 @@ class Tracker():
 
     def __init__(self):
 
-
-        self.markerData = []
-        self.targetRailX = 950
+        
+        self.markerData = np.full(3,None).tolist()
+        self.targetRailX = 0
         self.topRailY = 0
 
         self.bottomRailY = 500
@@ -30,7 +30,7 @@ class Tracker():
 
         self.targetPoints = []
 
-        self.holeLocation = None
+        self.holeLocation = []
 
         self.reset = False
         self.ser = None
@@ -373,9 +373,9 @@ class Tracker():
              #[which marker][corners or id][which corner][x or y]          
 
         
-        self.targetRailX = self.markerData[0][0][0][0]
-        self.topRailY =    self.markerData[0][0][0][1]
-        self.bottomRailY = self.markerData[2][0][1][1]
+        self.targetRailX = self.markerData[0][1][0][0]
+        self.topRailY =    self.markerData[0][1][0][1]
+        self.bottomRailY = self.markerData[1][1][1][1]
 
 
         self.boundaries = [[0, self.topRailY, self.targetRailX, self.topRailY], [0, self.bottomRailY, self.targetRailX, self.bottomRailY], 
@@ -392,7 +392,8 @@ class Tracker():
         cv2.imwrite("2.png", markerImage)
 
     def updateMarkers(self):
-        self.markerData = []
+        self.markerData = np.full(3,None).tolist()
+        
         dictionary = aruco.Dictionary_get(aruco.DICT_6X6_250)
 
         # Initialize the detector parameters using defau lt values
@@ -405,30 +406,34 @@ class Tracker():
         if len(corners) > 0:
 
             ids = ids.flatten()
-            
+            #print(ids)
 
             for (corner,markerid) in zip(corners,ids):
                 corners = corner.reshape((4,2))
                 (topLeft, topRight, bottomRight, bottomLeft) = corners
+                self.markerData[markerid] = [markerid,corners]
                 
-                self.markerData.insert(markerid,[corners,markerid])
-
+                
+                
+                
                 
 
 
-                topRight = (int(topRight[0]), int(topRight[1]))
+                '''topRight = (int(topRight[0]), int(topRight[1]))
                 bottomRight = (int(bottomRight[0]), int(bottomRight[1]))
                 bottomLeft = (int(bottomLeft[0]), int(bottomLeft[1]))
                 topLeft = (int(topLeft[0]), int(topLeft[1]))
                 
                 cX = int((topLeft[0] + bottomRight[0]) / 2.0)
                 cY = int((topLeft[1] + bottomRight[1]) / 2.0)
-                cv2.circle(self.currentFrame, (cX, cY), 4, (0, 0, 255), -1)
+                cv2.circle(self.currentFrame, (cX, cY), 4, (0, 0, 255), -1)'''
                
-                if markerid == 2:
-                    self.holeLocation = [cX,cY]
-            #print(self.markerData , "\n\n")
-            #time.sleep(1)
+                
+                    
+          
 
 
-   
+    def findHole(self):
+
+        self.holeLocation = (self.markerData[2][1][0][0],self.markerData[2][1][0][1])
+        cv2.circle(self.currentFrame, self.holeLocation, 4, (0, 0, 255), -1)
