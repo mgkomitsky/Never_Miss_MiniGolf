@@ -1,4 +1,5 @@
 import cv2
+import cv2.aruco as aruco
 import numpy as np
 import imutils
 from filterpy.kalman import KalmanFilter
@@ -11,17 +12,16 @@ import random
 import time
 import copy
 import math
-
 class Tracker():
 
     def __init__(self):
         
 
-        
-        self.targetPoints = []
-        self.boundaries = [[0,100,800,100],[0,500,800,500],[800,100,800,500]]
 
-        
+        self.targetRailX = 100
+        self.boundaries = [[0,100,self.targetRailX,100],[0,500,self.targetRailX,500],[self.targetRailX,100,self.targetRailX,500]]
+
+        self.targetPoints = []
 
 
         self.holeLocation = None
@@ -94,7 +94,9 @@ class Tracker():
         cv2.imshow("Video", self.currentFrame)
 
     def setFrame(self):
+        
         ret, self.currentFrame = self.cap.read()
+        
         #self.currentFrame = cv2.rotate(self.currentFrame, rotateCode = cv2.ROTATE_90_COUNTERCLOCKWISE)
 
     def calculateBall(self, mask):  
@@ -331,7 +333,7 @@ class Tracker():
             if type(nextPoint) != str:
                 self.targetPoints.append([int(nextPoint[0]),int(nextPoint[1])])
             initialPoint = nextPoint
-            if initialPoint[0] == 800:
+            if initialPoint[0] == self.targetRailX:
                 break
             
 
@@ -413,4 +415,33 @@ class Tracker():
 
 
     def autoSetBoundaries(self):
-        pass
+        #Load the dictionary that was used to generate the markers.
+        dictionary = aruco.Dictionary_get(aruco.DICT_6X6_250)
+
+        # Initialize the detector parameters using default values
+        parameters =  aruco.DetectorParameters_create()
+
+        # Detect the markers in the image
+        markerCorners, markerIds, rejectedCandidates = aruco.detectMarkers(self.currentFrame, dictionary, parameters=parameters)
+        
+        self.targetRailX = markerCorners[0][0][2][0]
+        self.boundaries = [[0,100,self.targetRailX,100],[0,500,self.targetRailX,500],[self.targetRailX,100,self.targetRailX,500]]
+        
+        
+
+
+        
+    def printMarker(self):
+        # Load the predefined dictionary
+        dictionary = aruco.Dictionary_get(aruco.DICT_6X6_250) 
+
+        # Generate the marker
+        markerImage = np.zeros((200, 200), dtype=np.uint8)
+        markerImage = aruco.drawMarker(dictionary, 33, 200, markerImage, 1);
+
+        cv2.imwrite("marker.png", markerImage)
+
+
+
+
+

@@ -10,6 +10,9 @@ filterpy = "*"
 requests = "*"
 pyserial = "*"
 numpy = "*"
+cv2-aruco = "*"
+opencv-contrib-python = "*"
+aruco = "*"
 
 [requires]
 python_version = "3.7"
