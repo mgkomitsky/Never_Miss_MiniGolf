@@ -27,7 +27,7 @@ while(True):
     track.returnTrackbarPosition("Trackbars")
     track.setFrame()
     
-    #time.sleep(.1)            
+    time.sleep(.05)            
 
     ball_mask = track.applyMask(track.currentFrame,
                                 track.BALL_HSV[0], track.BALL_HSV[1], "Mask")

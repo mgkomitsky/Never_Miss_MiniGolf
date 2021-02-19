@@ -10,6 +10,7 @@ from src import MiniGolfKalmanFilter
 import random
 import time
 import copy
+import math
 
 class Tracker():
 
@@ -113,10 +114,8 @@ class Tracker():
     def drawLineToTargetPoints(self):
         
         currentPoint = [self.f.x[0],self.f.x[1]]
-
-        myPoints = copy.deepcopy(self.targetPoints)
-        
-        for point in myPoints:
+        #print(self.targetPoints)
+        for point in self.targetPoints:
             if type(point) == str:
                 break
             nextPoint = point
@@ -214,13 +213,14 @@ class Tracker():
 
             position = [x1,y1] 
 
-            if self.isPointOnBoundary(position,[x3,y3],[x4,y4]):
+            if self.isPointOnBoundary(position,[x3,y3],[x4,y4])==False:
+                if u >= 0 and u <= 1 and t >= 0:
+                    points.append([x,y])
+
                 
-                continue
+                
 
-            if u >= 0 and u <= 1 and t >= 0:
-                points.append([x,y])
-
+            
             
 
 
@@ -231,12 +231,12 @@ class Tracker():
 
     def isPointOnBoundary(self,point,a,b):
     #We need to form 2 vectors
-        x = [a[0]-point[0],a[1]-point[1]]   #Point to a
-        y = [b[0]-point[0],b[1]-point[1]]    #Point to b
+        x = [int(a[0]-point[0]),int(a[1]-point[1])]   #Point to a
+        y = [int(b[0]-point[0]),int(b[1]-point[1])]    #Point to b
         c = np.cross(x,y)
         
         if c != 0:
-            #print("False")
+           # print("False")
             return False
         else:
             #print("True")
@@ -281,6 +281,7 @@ class Tracker():
             if already_sorted:
                 break
         
+        #print(points[indexes[0]])
         return points[indexes[0]]
         
             
@@ -300,12 +301,8 @@ class Tracker():
         
         initialPoint = self.returnClosest(points)
         if type(initialPoint) != str:
-            self.targetPoints.append(initialPoint)
+            self.targetPoints.append([int(initialPoint[0]),int(initialPoint[1])])
             
-            
-            
-
-        
                 
         self.calculateBounce(initialPoint)
         
@@ -332,7 +329,7 @@ class Tracker():
                 return
             nextPoint = self.returnClosest(allPoints)
             if type(nextPoint) != str:
-                self.targetPoints.append(nextPoint)
+                self.targetPoints.append([int(nextPoint[0]),int(nextPoint[1])])
             initialPoint = nextPoint
             if initialPoint[0] == 800:
                 break
