@@ -18,7 +18,7 @@ class Tracker():
         
 
 
-        self.targetRailX = 100
+        self.targetRailX = 950
         self.boundaries = [[0,100,self.targetRailX,100],[0,500,self.targetRailX,500],[self.targetRailX,100,self.targetRailX,500]]
 
         self.targetPoints = []
@@ -416,13 +416,13 @@ class Tracker():
 
     def autoSetBoundaries(self):
         #Load the dictionary that was used to generate the markers.
-        dictionary = aruco.Dictionary_get(aruco.DICT_6X6_250)
+        targetrail = aruco.Dictionary_get(aruco.DICT_6X6_250)
 
         # Initialize the detector parameters using default values
         parameters =  aruco.DetectorParameters_create()
 
         # Detect the markers in the image
-        markerCorners, markerIds, rejectedCandidates = aruco.detectMarkers(self.currentFrame, dictionary, parameters=parameters)
+        markerCorners, markerIds, rejectedCandidates = aruco.detectMarkers(self.currentFrame, targetrail, parameters=parameters)
         
         self.targetRailX = markerCorners[0][0][2][0]
         self.boundaries = [[0,100,self.targetRailX,100],[0,500,self.targetRailX,500],[self.targetRailX,100,self.targetRailX,500]]
