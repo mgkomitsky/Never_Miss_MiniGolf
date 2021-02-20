@@ -36,10 +36,12 @@ class Tracker():
         self.ser = None
         self.cap = None
         self.currentFrame = None
+        cv2.namedWindow("Trackbars",cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
+        
         cv2.namedWindow("Video", cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
         cv2.namedWindow("Mask", cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
-        cv2.namedWindow("Target Mask", cv2.WINDOW_NORMAL |
-                        cv2.WINDOW_KEEPRATIO)
+        cv2.namedWindow("Target Mask", cv2.WINDOW_NORMAL |cv2.WINDOW_KEEPRATIO)
+        self.drawTrackbars("Trackbars")
         self.BALL_HSV = [[0, 0, 0], [255, 255, 255]]
         self.TARGET_HSV = [[0, 0, 0], [255, 255, 255]]
         self.f = MiniGolfKalmanFilter.MiniGolfKalmanFilter(
@@ -58,6 +60,13 @@ class Tracker():
         cv2.createTrackbar("Ball UH", window, 255, 255, self.nothing)
         cv2.createTrackbar("Ball US", window, 255, 255, self.nothing)
         cv2.createTrackbar("Ball UV", window, 255, 255, self.nothing)
+
+        cv2.createTrackbar("Target LH", window, 0, 255, self.nothing)
+        cv2.createTrackbar("Target LS", window, 0, 255, self.nothing)
+        cv2.createTrackbar("Target LV", window, 0, 255, self.nothing)
+        cv2.createTrackbar("Target UH", window, 255, 255, self.nothing)
+        cv2.createTrackbar("Target US", window, 255, 255, self.nothing)
+        cv2.createTrackbar("Target UV", window, 255, 255, self.nothing)
 
         
 
@@ -86,7 +95,7 @@ class Tracker():
         self.TARGET_HSV = [[target_l_h, target_l_s, target_l_v],
                            [target_u_h, target_u_s, target_u_v]]
 
-    def setupVideoStream(self, file_name=0):
+    def setupVideoStream(self, file_name=1):
         self.cap = cv2.VideoCapture(file_name)
 
     def showFrame(self):
@@ -160,9 +169,10 @@ class Tracker():
                 self.resetFilter()
             
             self.f.update([contour_x, contour_y])
+        
 
             if (self.reset == True):
-                self.f.x = [contour_x, contour_y, 100, 0]
+                self.f.x = [contour_x, contour_y, 1, 0]
                 self.reset = False
 
         else:
@@ -358,7 +368,7 @@ class Tracker():
 
     def openWindow(self, windowName, l=540, w=540):
 
-        cv2.namedWindow(windowName)
+        cv2.namedWindow(windowName,cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
         cv2.resizeWindow(windowName, l, w)
 
     def drawBoundaries(self):
@@ -373,12 +383,18 @@ class Tracker():
                 
                 
                 
-             #[which marker][corners or id][which corner][x or y]          
+        #[which marker][corners or id][which corner][x or y]          
 
-        
-        self.targetRailX = self.markerData[0][1][0][0]
-        self.topRailY =    self.markerData[0][1][0][1]
-        self.bottomRailY = self.markerData[1][1][1][1]
+        try:
+
+            self.targetRailX = self.markerData[0][1][0][0]
+            self.topRailY =    self.markerData[0][1][0][1]
+            self.bottomRailY = self.markerData[1][1][1][1]
+        except TypeError:
+            self.targetRailX = 500
+            self.topRailY =    50
+            self.bottomRailY = 400
+
 
 
         self.boundaries = [[0, self.topRailY, self.targetRailX, self.topRailY], [0, self.bottomRailY, self.targetRailX, self.bottomRailY], 
@@ -395,7 +411,7 @@ class Tracker():
         cv2.imwrite("2.png", markerImage)
 
     def updateMarkers(self):
-        self.markerData = np.full(3,None).tolist()
+        
         
         dictionary = aruco.Dictionary_get(aruco.DICT_6X6_250)
 
@@ -436,10 +452,10 @@ class Tracker():
           
 
 
-    def findHole(self):
+    '''def findHole(self):
 
         self.holeLocation = (self.markerData[2][1][0][0],self.markerData[2][1][0][1])
-        cv2.circle(self.currentFrame, self.holeLocation, 4, (0, 0, 255), -1)
+        cv2.circle(self.currentFrame, self.holeLocation, 4, (0, 0, 255), -1)'''
 
     def measureVelocity(self):
         xVelocity = self.f.x[2] - self.previousState[2]
