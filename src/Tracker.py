@@ -11,7 +11,7 @@ from src import MiniGolfKalmanFilter
 import random
 import time
 import copy
-import math
+import math 
 
 
 class Tracker():
@@ -20,16 +20,15 @@ class Tracker():
 
         self.previousState = []
         self.markerData = np.full(3,None).tolist()
+
         self.targetRailX = 0
         self.topRailY = 0
-
-        self.bottomRailY = 500
+        self.bottomRailY = 0
 
         self.boundaries = [[0, self.topRailY, self.targetRailX, self.topRailY], [0, self.bottomRailY, self.targetRailX, self.bottomRailY], 
         [self.targetRailX, self.topRailY, self.targetRailX, self.bottomRailY]]
 
         self.targetPoints = []
-
         self.holeLocation = []
 
         self.reset = False
@@ -37,7 +36,6 @@ class Tracker():
         self.cap = None
         self.currentFrame = None
         cv2.namedWindow("Trackbars",cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
-        
         cv2.namedWindow("Video", cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
         cv2.namedWindow("Mask", cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
         cv2.namedWindow("Target Mask", cv2.WINDOW_NORMAL |cv2.WINDOW_KEEPRATIO)
@@ -51,6 +49,7 @@ class Tracker():
         pass
 
     def drawTrackbars(self, window):
+
 
         cv2.namedWindow(window)
 
@@ -67,10 +66,6 @@ class Tracker():
         cv2.createTrackbar("Target UH", window, 255, 255, self.nothing)
         cv2.createTrackbar("Target US", window, 255, 255, self.nothing)
         cv2.createTrackbar("Target UV", window, 255, 255, self.nothing)
-
-        
-
-        
 
     def returnTrackbarPosition(self, window):
         ball_l_h = cv2.getTrackbarPos("Ball LH", window)
@@ -307,7 +302,6 @@ class Tracker():
             if initialPoint[0] == self.targetRailX:
                 break
         
-
     def applyMask(self, frame, lower, upper, window):  # Apply the mask
         FRAME_IN_HSV_SPACE = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         mask = cv2.inRange(FRAME_IN_HSV_SPACE,
@@ -430,22 +424,19 @@ class Tracker():
                 corners = corner.reshape((4,2))
                 (topLeft, topRight, bottomRight, bottomLeft) = corners
                 self.markerData[markerid] = [markerid,corners]
-                
-                
-                
-                
-                
 
 
-                '''topRight = (int(topRight[0]), int(topRight[1]))
-                bottomRight = (int(bottomRight[0]), int(bottomRight[1]))
-                bottomLeft = (int(bottomLeft[0]), int(bottomLeft[1]))
-                topLeft = (int(topLeft[0]), int(topLeft[1]))
-                
-                cX = int((topLeft[0] + bottomRight[0]) / 2.0)
-                cY = int((topLeft[1] + bottomRight[1]) / 2.0)
-                cv2.circle(self.currentFrame, (cX, cY), 4, (0, 0, 255), -1)'''
-               
+        elif len(corners) < 2:
+
+            self.markerData = np.full(3,None).tolist()
+                             
+    def measureVelocity(self):
+        xVelocity = self.f.x[2] - self.previousState[2]
+        yVelocity = self.f.x[3] - self.previousState[3]
+
+        return [xVelocity,yVelocity]
+
+
                 
                     
           
@@ -460,8 +451,4 @@ class Tracker():
         except:
             self.holeLocation = (0,0)'''
 
-    def measureVelocity(self):
-        xVelocity = self.f.x[2] - self.previousState[2]
-        yVelocity = self.f.x[3] - self.previousState[3]
-
-        return [xVelocity,yVelocity]
+    
