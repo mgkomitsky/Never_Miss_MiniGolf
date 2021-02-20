@@ -386,11 +386,10 @@ class Tracker():
         #[which marker][corners or id][which corner][x or y]          
 
         try:
-
             self.targetRailX = self.markerData[0][1][0][0]
             self.topRailY =    self.markerData[0][1][0][1]
             self.bottomRailY = self.markerData[1][1][1][1]
-        except TypeError:
+        except:
             self.targetRailX = 500
             self.topRailY =    50
             self.bottomRailY = 400
@@ -454,8 +453,12 @@ class Tracker():
 
     '''def findHole(self):
 
-        self.holeLocation = (self.markerData[2][1][0][0],self.markerData[2][1][0][1])
-        cv2.circle(self.currentFrame, self.holeLocation, 4, (0, 0, 255), -1)'''
+        try:
+
+            self.holeLocation = (self.markerData[2][1][0][0],self.markerData[2][1][0][1])
+            cv2.circle(self.currentFrame, self.holeLocation, 4, (0, 0, 255), -1)
+        except:
+            self.holeLocation = (0,0)'''
 
     def measureVelocity(self):
         xVelocity = self.f.x[2] - self.previousState[2]
