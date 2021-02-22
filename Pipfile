@@ -13,6 +13,8 @@ numpy = "*"
 cv2-aruco = "*"
 opencv-contrib-python = "*"
 aruco = "*"
+pyautogui = "*"
+ffmpeg = "*"
 
 [requires]
 python_version = "3.7"

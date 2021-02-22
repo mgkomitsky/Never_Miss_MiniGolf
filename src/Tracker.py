@@ -14,6 +14,7 @@ import copy
 import math 
 
 
+
 class Tracker():
 
     def __init__(self):
@@ -53,19 +54,19 @@ class Tracker():
 
         cv2.namedWindow(window)
 
-        cv2.createTrackbar("Ball LH", window, 0, 255, self.nothing)
-        cv2.createTrackbar("Ball LS", window, 25, 255, self.nothing)
+        cv2.createTrackbar("Ball LH", window, 158, 255, self.nothing)
+        cv2.createTrackbar("Ball LS", window, 174, 255, self.nothing)
         cv2.createTrackbar("Ball LV", window, 145, 255, self.nothing)
         cv2.createTrackbar("Ball UH", window, 255, 255, self.nothing)
         cv2.createTrackbar("Ball US", window, 255, 255, self.nothing)
         cv2.createTrackbar("Ball UV", window, 255, 255, self.nothing)
 
-        cv2.createTrackbar("Target LH", window, 0, 255, self.nothing)
-        cv2.createTrackbar("Target LS", window, 0, 255, self.nothing)
-        cv2.createTrackbar("Target LV", window, 0, 255, self.nothing)
+        cv2.createTrackbar("Target LH", window, 69, 255, self.nothing)
+        cv2.createTrackbar("Target LS", window, 51, 255, self.nothing)
+        cv2.createTrackbar("Target LV", window, 45, 255, self.nothing)
         cv2.createTrackbar("Target UH", window, 255, 255, self.nothing)
         cv2.createTrackbar("Target US", window, 255, 255, self.nothing)
-        cv2.createTrackbar("Target UV", window, 255, 255, self.nothing)
+        cv2.createTrackbar("Target UV", window, 217, 255, self.nothing)
 
     def returnTrackbarPosition(self, window):
         ball_l_h = cv2.getTrackbarPos("Ball LH", window)
@@ -90,14 +91,14 @@ class Tracker():
         self.TARGET_HSV = [[target_l_h, target_l_s, target_l_v],
                            [target_u_h, target_u_s, target_u_v]]
 
-    def setupVideoStream(self, file_name=1):
+    def setupVideoStream(self, file_name=0):
         self.cap = cv2.VideoCapture(file_name)
 
     def showFrame(self):
         cv2.imshow("Video", self.currentFrame)
 
     def setFrame(self):
-
+        
         ret, self.currentFrame = self.cap.read()
 
         #self.currentFrame = cv2.rotate(self.currentFrame, rotateCode = cv2.ROTATE_90_COUNTERCLOCKWISE)
@@ -288,10 +289,12 @@ class Tracker():
 
         while True:
             velocity[1] = -velocity[1]
+            
             try:
                 allPoints = self.returnAllPointsOfIntersection(
                     initialPoint[0], initialPoint[1], initialPoint[0]+velocity[0], initialPoint[1]+velocity[1])
             except TypeError:
+
                 return
             nextPoint = self.returnClosest(allPoints)
             if type(nextPoint) != str:
@@ -301,6 +304,10 @@ class Tracker():
             
             if initialPoint[0] == self.targetRailX:
                 break
+
+    def flipVelocity(self):
+        pass
+
         
     def applyMask(self, frame, lower, upper, window):  # Apply the mask
         FRAME_IN_HSV_SPACE = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -317,22 +324,23 @@ class Tracker():
 
             if self.targetPoints[-1][1] > self.holeLocation[1]:
 
-                print("DOWN")
+                print("l")
 
-                # self.sendCommandToMCU("s")
-                # self.sendCommandToMCU("l")
+                self.sendCommandToMCU("s")
+                self.sendCommandToMCU("l")
             elif self.targetPoints[-1][1] < self.holeLocation[1]:
 
-                print("UP")
-                # self.sendCommandToMCU("s")
-                # self.sendCommandToMCU("r")
+                print("r")
+                self.sendCommandToMCU("s")
+                self.sendCommandToMCU("r")
             else:
 
-                # self.sendCommandToMCU("s")
-                print("STAY")
+                self.sendCommandToMCU("s")
+                print("s")
 
         else:
-            print("STAY")
+            self.sendCommandToMCU("s")
+            print("s")
 
     def sendCommandToMCU(self, command):
         self.ser.write(str.encode(command))
@@ -447,8 +455,7 @@ class Tracker():
         try:
 
             self.holeLocation = (self.markerData[2][1][0][0],self.markerData[2][1][0][1])
-            cv2.circle(self.currentFrame, self.holeLocation, 4, (0, 0, 255), -1)
+            #cv2.circle(self.currentFrame, self.holeLocation, 4, (120, 125, 255), -1)
         except:
             self.holeLocation = (0,0)'''
-
     
