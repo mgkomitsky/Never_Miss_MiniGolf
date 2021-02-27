@@ -61,19 +61,9 @@ print(np.dot(A,stateMatrix))
 
 
 
-'''class KalmanFilter():
+class KalmanFilter():
     def __init__(self):
+        self.stateMatrix = [0,0,0,0]
+        self.P = 
 
-        self.x = 0
-        self.y = 0
-        self.dx = 0
-        self.dy = 0
-
-        self.dt = 1
-
-        self.stateMatrix = np.array([[x],[y],[dx],[dy]])
-
-        self.A = np.array([[1,0,dt,0],
-        [0,1,0,dt],
-        [0,0,1,0],
-        [0,0,0,1]])'''
+        

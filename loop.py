@@ -27,23 +27,28 @@ while(True):
     
     #track.checkESPState()
    
-    
+    #time.sleep(.75)
     track.setFrame()
     track.updateMarkers()
     track.autoSetBoundaries()
     track.returnTrackbarPosition("Trackbars")
-
     
-    target_mask = track.applyMask(track.currentFrame, track.TARGET_HSV[0], track.TARGET_HSV[1], "Target Mask")
-    track.findHole(target_mask)
+    
+    
+    
+
+    #target_mask = track.applyMask(track.currentFrame, track.TARGET_HSV[0], track.TARGET_HSV[1], "Target Mask")
+    #track.findHole(target_mask)
 
     ball_mask = track.applyMask(track.currentFrame, track.BALL_HSV[0], track.BALL_HSV[1], "Mask")
     track.calculateBall(ball_mask)
+    #track.flipVelocity()
 
     
    
     track.drawBoundaries()
     #track.calculateCommand()
+    #print(track.targetPoints)
     track.showFrame()
  
     

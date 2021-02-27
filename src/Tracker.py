@@ -18,13 +18,14 @@ import math
 class Tracker():
 
     def __init__(self):
-
+        self.previousDirection = 0
+        self.currentDirection = True
         self.previousState = []
         self.markerData = np.full(3,None).tolist()
 
-        self.targetRailX = 0
-        self.topRailY = 0
-        self.bottomRailY = 0
+        self.targetRailX = 800
+        self.topRailY = 100
+        self.bottomRailY = 400
 
         self.boundaries = [[0, self.topRailY, self.targetRailX, self.topRailY], [0, self.bottomRailY, self.targetRailX, self.bottomRailY], 
         [self.targetRailX, self.topRailY, self.targetRailX, self.bottomRailY]]
@@ -91,7 +92,7 @@ class Tracker():
         self.TARGET_HSV = [[target_l_h, target_l_s, target_l_v],
                            [target_u_h, target_u_s, target_u_v]]
 
-    def setupVideoStream(self, file_name=0):
+    def setupVideoStream(self, file_name=2):
         self.cap = cv2.VideoCapture(file_name)
 
     def showFrame(self):
@@ -114,6 +115,11 @@ class Tracker():
             contour_radius), (0, 255, 255), 2)  # Drawing Kalman tracking ball
         self.calculateTargetPoints()
 
+        if self.f.x[3] < 0:
+            self.currentDirection = True
+        else:
+            self.currentDirection = False
+        
     def drawLineToTargetPoints(self):
 
         currentPoint = [self.f.x[0], self.f.x[1]]
@@ -306,8 +312,14 @@ class Tracker():
                 break
 
     def flipVelocity(self):
-        pass
-
+        
+      
+        if self.currentDirection == False:
+                
+            print("FLIP")
+            #self.f.x[3] = -self.f.x[3]
+            #self.previousDirection = self.currentDirection
+        self.currentDirection = True
         
     def applyMask(self, frame, lower, upper, window):  # Apply the mask
         FRAME_IN_HSV_SPACE = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -326,20 +338,20 @@ class Tracker():
 
                 print("l")
 
-                self.sendCommandToMCU("s")
-                self.sendCommandToMCU("l")
+                #self.sendCommandToMCU("s")
+                #self.sendCommandToMCU("l")
             elif self.targetPoints[-1][1] < self.holeLocation[1]:
 
                 print("r")
-                self.sendCommandToMCU("s")
-                self.sendCommandToMCU("r")
+                #self.sendCommandToMCU("s")
+                #self.sendCommandToMCU("r")
             else:
 
-                self.sendCommandToMCU("s")
+                #self.sendCommandToMCU("s")
                 print("s")
 
         else:
-            self.sendCommandToMCU("s")
+            #self.sendCommandToMCU("s")
             print("s")
 
     def sendCommandToMCU(self, command):
@@ -438,11 +450,7 @@ class Tracker():
 
             self.markerData = np.full(3,None).tolist()
                              
-    def measureVelocity(self):
-        xVelocity = self.f.x[2] - self.previousState[2]
-        yVelocity = self.f.x[3] - self.previousState[3]
-
-        return [xVelocity,yVelocity]
+   
 
 
                 
