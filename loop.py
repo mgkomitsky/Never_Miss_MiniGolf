@@ -14,7 +14,7 @@ args = parser.parse_args()
 
 track = Tracker()
 #track.initializeSerialPort()
-track.setupVideoStream(args.file_name)
+track.setupVideoStream(2)
 track.setFrame()
 
 
@@ -23,14 +23,15 @@ track.setFrame()
 
 
 
+
 while(True):
-    
+    track.autoSetBoundaries()
     #track.checkESPState()
    
     #time.sleep(.75)
     track.setFrame()
     track.updateMarkers()
-    track.autoSetBoundaries()
+    
     track.returnTrackbarPosition("Trackbars")
     
     

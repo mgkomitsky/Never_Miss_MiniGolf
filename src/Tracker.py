@@ -55,10 +55,10 @@ class Tracker():
 
         cv2.namedWindow(window)
 
-        cv2.createTrackbar("Ball LH", window, 158, 255, self.nothing)
-        cv2.createTrackbar("Ball LS", window, 174, 255, self.nothing)
-        cv2.createTrackbar("Ball LV", window, 145, 255, self.nothing)
-        cv2.createTrackbar("Ball UH", window, 255, 255, self.nothing)
+        cv2.createTrackbar("Ball LH", window, 0, 255, self.nothing)
+        cv2.createTrackbar("Ball LS", window, 67, 255, self.nothing)
+        cv2.createTrackbar("Ball LV", window, 174, 255, self.nothing)
+        cv2.createTrackbar("Ball UH", window, 10, 255, self.nothing)
         cv2.createTrackbar("Ball US", window, 255, 255, self.nothing)
         cv2.createTrackbar("Ball UV", window, 255, 255, self.nothing)
 
@@ -113,12 +113,11 @@ class Tracker():
                    int(contour_radius), (0, 255, 0), 2)  # Draw ball
         cv2.circle(self.currentFrame, (int(self.f.x[0]), int(self.f.x[1])), int(
             contour_radius), (0, 255, 255), 2)  # Drawing Kalman tracking ball
-        self.calculateTargetPoints()
 
-        if self.f.x[3] < 0:
-            self.currentDirection = True
-        else:
-            self.currentDirection = False
+        if self.f.x[2] > 1 or self.f.x[3] > 1:    
+            self.calculateTargetPoints()
+
+        
         
     def drawLineToTargetPoints(self):
 
@@ -167,8 +166,8 @@ class Tracker():
             contour = max(contours,  key=cv2.contourArea)
             ((contour_x, contour_y), contour_radius) = cv2.minEnclosingCircle(contour)
 
-            if contour_radius < 10:
-                self.resetFilter()
+            """if contour_radius < 2:
+                self.resetFilter()"""
             
             self.f.update([contour_x, contour_y])
         
