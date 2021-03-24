@@ -47,6 +47,9 @@ class Tracker():
         self.f = MiniGolfKalmanFilter.MiniGolfKalmanFilter(
             intial_state=[0, 0, 1, 0])
 
+        self.assist = True
+        self.currentSpeed = "e"
+
     def nothing(self, x):
         pass
 
@@ -56,18 +59,18 @@ class Tracker():
         cv2.namedWindow(window)
 
         cv2.createTrackbar("Ball LH", window, 0, 255, self.nothing)
-        cv2.createTrackbar("Ball LS", window, 67, 255, self.nothing)
-        cv2.createTrackbar("Ball LV", window, 174, 255, self.nothing)
-        cv2.createTrackbar("Ball UH", window, 10, 255, self.nothing)
-        cv2.createTrackbar("Ball US", window, 255, 255, self.nothing)
+        cv2.createTrackbar("Ball LS", window, 127, 255, self.nothing)
+        cv2.createTrackbar("Ball LV", window, 202, 255, self.nothing)
+        cv2.createTrackbar("Ball UH", window, 51, 255, self.nothing)
+        cv2.createTrackbar("Ball US", window, 238, 255, self.nothing)
         cv2.createTrackbar("Ball UV", window, 255, 255, self.nothing)
 
-        cv2.createTrackbar("Target LH", window, 69, 255, self.nothing)
-        cv2.createTrackbar("Target LS", window, 51, 255, self.nothing)
-        cv2.createTrackbar("Target LV", window, 45, 255, self.nothing)
-        cv2.createTrackbar("Target UH", window, 255, 255, self.nothing)
-        cv2.createTrackbar("Target US", window, 255, 255, self.nothing)
-        cv2.createTrackbar("Target UV", window, 217, 255, self.nothing)
+        cv2.createTrackbar("Target LH", window, 54, 255, self.nothing)
+        cv2.createTrackbar("Target LS", window, 71, 255, self.nothing)
+        cv2.createTrackbar("Target LV", window, 165, 255, self.nothing)
+        cv2.createTrackbar("Target UH", window, 229, 255, self.nothing)
+        cv2.createTrackbar("Target US", window, 148, 255, self.nothing)
+        cv2.createTrackbar("Target UV", window, 255, 255, self.nothing)
 
     def returnTrackbarPosition(self, window):
         ball_l_h = cv2.getTrackbarPos("Ball LH", window)
@@ -143,8 +146,9 @@ class Tracker():
             contours = max(contours, key=cv2.contourArea)
 
             ((contour_x, contour_y), contour_radius) = cv2.minEnclosingCircle(contours)
+            self.holeLocation = [contour_x, contour_y]
 
-        self.holeLocation = [contour_x, contour_y]
+        
 
     def findContours(self, mask):
         contours = cv2.findContours(
@@ -266,13 +270,6 @@ class Tracker():
         # print(points[indexes[0]])
         return points[indexes[0]]
 
-    def norm(self, a, b):
-        magnitude = (a**2 + b**2)**.5
-        x = a/magnitude
-        y = b/magnitude
-
-        return [x, y]
-
     def calculateTargetPoints(self):
 
         self.targetPoints = []
@@ -284,7 +281,7 @@ class Tracker():
             self.targetPoints.append(
                 [int(initialPoint[0]), int(initialPoint[1])])
 
-        self.calculateBounce(initialPoint)
+        #self.calculateBounce(initialPoint)
 
         self.drawLineToTargetPoints()
 
@@ -333,48 +330,87 @@ class Tracker():
 
         if index > 0:
 
-            if self.targetPoints[-1][1] > self.holeLocation[1]:
+            if self.targetPoints[-1][1] >= self.holeLocation[1] + 2 or self.targetPoints[-1][1] <= self.holeLocation[1] - 2 :
 
-                print("l")
+                if self.f.x[2] < 1:
+                    if self.assist:
+                        self.sendCommandToMCU(self.currentSpeed)
+                        self.sendCommandToMCU("s")
+                        print("s")
+                    return
 
-                #self.sendCommandToMCU("s")
-                #self.sendCommandToMCU("l")
-            elif self.targetPoints[-1][1] < self.holeLocation[1]:
+                if self.targetPoints[-1][1] > self.holeLocation[1]:
 
-                print("r")
-                #self.sendCommandToMCU("s")
-                #self.sendCommandToMCU("r")
-            else:
+                    print("r")
 
-                #self.sendCommandToMCU("s")
-                print("s")
+                    #self.sendCommandToMCU("s")
+                    if self.assist:
+                        self.sendCommandToMCU(self.currentSpeed)
+                        self.sendCommandToMCU("r")
+                elif self.targetPoints[-1][1] < self.holeLocation[1]:
 
+                    print("l")
+                    #self.sendCommandToMCU("s")
+                    if self.assist:
+                        self.sendCommandToMCU(self.currentSpeed)
+                        self.sendCommandToMCU("l")
+            else: 
+                self.sendCommandToMCU("s")
         else:
-            #self.sendCommandToMCU("s")
-            print("s")
+            self.sendCommandToMCU("s")
+
+                
+           
+        
 
     def sendCommandToMCU(self, command):
         self.ser.write(str.encode(command))
 
     def initializeSerialPort(self):
-        self.ser = serial.Serial('COM3')
+        self.ser = serial.Serial('COM4')
 
     def closeSerialPort():
         self.ser.close
 
     def checkESPState(self):
         # Get json data to set states of the machine
-        #response = requests.get("http://52.119.101.179:7980/metrics")
-        text = {
-            "ip": "192.168.100.76",
-            "time": "630257",
-            "ssid": "ECEN403-Development",
-            "speed": "0",
-            "mode": "0"}
+        response = requests.get("http://52.119.101.179:7980/metrics")
 
-        response = json.dumps(text)
+        
+ 
+      
 
-        print(response)
+        mode = response.json()["mode"]
+
+        #print(mode)
+
+        if mode == "2":
+            self.assist = False
+            print(self.assist)
+            print("NO ASSIST")
+            
+
+        if mode == "3":
+            self.assist = True
+            print(self.assist)
+            print("SLOW")
+            self.sendCommandToMCU("b")
+            self.currentSpeed = "b"
+
+        if mode == "4":
+            self.assist = True
+            print(self.assist)
+            print("FAST")
+            self.sendCommandToMCU("e")
+            self.currentSpeed = "e"
+
+        
+
+       
+
+
+
+        #self.sendCommandToMCU(speed)
 
     def autoHome(self):
         pass
@@ -400,7 +436,7 @@ class Tracker():
 
         try:
             self.targetRailX = self.markerData[0][1][0][0]
-            self.topRailY =    self.markerData[0][1][0][1]
+            self.topRailY    = self.markerData[0][1][0][1]
             self.bottomRailY = self.markerData[1][1][1][1]
         except:
             self.targetRailX = 500
@@ -449,7 +485,13 @@ class Tracker():
 
             self.markerData = np.full(3,None).tolist()
                              
-   
+    def checkIfCloseToSwitch(self):
+        pass
+
+    def blackout(self):
+        cv2.rectangle(self.currentFrame,(0,0),(self.targetRailX, self.topRailY),(0,0,0),-1)
+        cv2.rectangle(self.currentFrame,(self.targetRailX,0),(900, 900),(0,0,0),-1)
+        cv2.rectangle(self.currentFrame,(0,self.bottomRailY),(900, 900),(0,0,0),-1)
 
 
                 

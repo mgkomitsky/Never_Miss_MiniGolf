@@ -14,7 +14,7 @@ args = parser.parse_args()
 
 track = Tracker()
 #track.initializeSerialPort()
-track.setupVideoStream(2)
+track.setupVideoStream(0)
 track.setFrame()
 
 
@@ -25,12 +25,15 @@ track.setFrame()
 
 
 while(True):
-    track.autoSetBoundaries()
+    
     #track.checkESPState()
    
     #time.sleep(.75)
     track.setFrame()
+    
     track.updateMarkers()
+    track.autoSetBoundaries()
+    track.blackout()
     
     track.returnTrackbarPosition("Trackbars")
     
@@ -38,12 +41,12 @@ while(True):
     
     
 
-    #target_mask = track.applyMask(track.currentFrame, track.TARGET_HSV[0], track.TARGET_HSV[1], "Target Mask")
-    #track.findHole(target_mask)
+    target_mask = track.applyMask(track.currentFrame, track.TARGET_HSV[0], track.TARGET_HSV[1], "Target Mask")
+    track.findHole(target_mask)
 
     ball_mask = track.applyMask(track.currentFrame, track.BALL_HSV[0], track.BALL_HSV[1], "Mask")
     track.calculateBall(ball_mask)
-    #track.flipVelocity()
+    
 
     
    
@@ -58,7 +61,7 @@ while(True):
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
-#track.sendCommandToMCU('s')
+track.sendCommandToMCU('s')
 track.cap.release()
 cv2.destroyAllWindows()
 #track.closeSerialPort()
