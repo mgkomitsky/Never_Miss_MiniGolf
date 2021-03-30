@@ -120,8 +120,6 @@ class Tracker():
         if self.f.x[2] > 1 or self.f.x[3] > 1:    
             self.calculateTargetPoints()
 
-        
-        
     def drawLineToTargetPoints(self):
 
         currentPoint = [self.f.x[0], self.f.x[1]]
@@ -147,8 +145,6 @@ class Tracker():
 
             ((contour_x, contour_y), contour_radius) = cv2.minEnclosingCircle(contours)
             self.holeLocation = [contour_x, contour_y]
-
-        
 
     def findContours(self, mask):
         contours = cv2.findContours(
@@ -343,25 +339,38 @@ class Tracker():
 
                     print("r")
 
-                    #self.sendCommandToMCU("s")
+                    
                     if self.assist:
-                        self.sendCommandToMCU(self.currentSpeed)
+                        if self.holeLocation[1] >= self.bottomRailY-40 or self.holeLocation[1] <= self.topRailY+40:
+                            self.sendCommandToMCU("b")
+                            print("1")
+                        else:
+                            
+
+
+                            self.sendCommandToMCU(self.currentSpeed)
                         self.sendCommandToMCU("r")
+
+
+
                 elif self.targetPoints[-1][1] < self.holeLocation[1]:
 
                     print("l")
-                    #self.sendCommandToMCU("s")
+                    
                     if self.assist:
-                        self.sendCommandToMCU(self.currentSpeed)
+                        if self.holeLocation[1] >= self.bottomRailY-40 or self.holeLocation[1] <= self.topRailY+40:
+                            self.sendCommandToMCU("b")
+                            print("2")
+
+
+
+                        else:
+                            self.sendCommandToMCU(self.currentSpeed)
                         self.sendCommandToMCU("l")
             else: 
                 self.sendCommandToMCU("s")
         else:
             self.sendCommandToMCU("s")
-
-                
-           
-        
 
     def sendCommandToMCU(self, command):
         self.ser.write(str.encode(command))
@@ -427,6 +436,10 @@ class Tracker():
                      (int(line[2]), int(line[3])),
                      (150, 255, 120), 1)
 
+
+        cv2.line(self.currentFrame,(0,self.topRailY+40),(self.targetRailX,self.topRailY+40), (255, 255,0), 1)
+        cv2.line(self.currentFrame,(0,self.bottomRailY-40),(self.targetRailX,self.bottomRailY-40), (255, 255,0), 1)
+
     def autoSetBoundaries(self):
         self.updateMarkers()
                 
@@ -434,19 +447,25 @@ class Tracker():
                 
         #[which marker][corners or id][which corner][x or y]          
 
-        try:
+        '''try:
             self.targetRailX = self.markerData[0][1][0][0]
             self.topRailY    = self.markerData[0][1][0][1]
             self.bottomRailY = self.markerData[1][1][1][1]
         except:
             self.targetRailX = 500
             self.topRailY =    50
-            self.bottomRailY = 400
+            self.bottomRailY = 400'''
 
 
+        self.targetRailX = 323
+        self.topRailY    = 50
+        self.bottomRailY = 455
 
         self.boundaries = [[0, self.topRailY, self.targetRailX, self.topRailY], [0, self.bottomRailY, self.targetRailX, self.bottomRailY], 
         [self.targetRailX, self.topRailY, self.targetRailX, self.bottomRailY]]
+
+        self.boundaries = [[0, 50, 323, 50], [0, 455, 323, 455], 
+        [323, 50, 323, 455]]
 
     def printMarker(self):
         # Load the predefined dictionary
@@ -486,25 +505,14 @@ class Tracker():
             self.markerData = np.full(3,None).tolist()
                              
     def checkIfCloseToSwitch(self):
-        pass
-
+        if self.holeLocation[1] <= self.bottomRailY+100:
+            self.sendCommandToMCU("b")
+            self.currentSpeed = 'b'
+        if self.holeLocation[1] >= self.topRailY-100:
+            self.sendCommandToMCU("b")
+            self.currentSpeed = 'b'
+        
     def blackout(self):
         cv2.rectangle(self.currentFrame,(0,0),(self.targetRailX, self.topRailY),(0,0,0),-1)
         cv2.rectangle(self.currentFrame,(self.targetRailX,0),(900, 900),(0,0,0),-1)
         cv2.rectangle(self.currentFrame,(0,self.bottomRailY),(900, 900),(0,0,0),-1)
-
-
-                
-                    
-          
-
-
-    '''def findHole(self):
-
-        try:
-
-            self.holeLocation = (self.markerData[2][1][0][0],self.markerData[2][1][0][1])
-            #cv2.circle(self.currentFrame, self.holeLocation, 4, (120, 125, 255), -1)
-        except:
-            self.holeLocation = (0,0)'''
-    

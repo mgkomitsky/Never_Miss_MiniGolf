@@ -13,7 +13,7 @@ args = parser.parse_args()
 
 
 track = Tracker()
-#track.initializeSerialPort()
+track.initializeSerialPort()
 track.setupVideoStream(0)
 track.setFrame()
 
@@ -51,8 +51,8 @@ while(True):
     
    
     track.drawBoundaries()
-    #track.calculateCommand()
-    #print(track.targetPoints)
+    track.calculateCommand()
+    
     track.showFrame()
  
     
