@@ -14,7 +14,7 @@ args = parser.parse_args()
 
 track = Tracker()
 track.initializeSerialPort()
-track.setupVideoStream(0)
+track.setupVideoStream(1)
 track.setFrame()
 
 

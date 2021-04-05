@@ -49,6 +49,7 @@ class Tracker():
 
         self.assist = True
         self.currentSpeed = "e"
+        self.exposure = -5
 
     def nothing(self, x):
         pass
@@ -65,12 +66,15 @@ class Tracker():
         cv2.createTrackbar("Ball US", window, 238, 255, self.nothing)
         cv2.createTrackbar("Ball UV", window, 255, 255, self.nothing)
 
-        cv2.createTrackbar("Target LH", window, 54, 255, self.nothing)
-        cv2.createTrackbar("Target LS", window, 71, 255, self.nothing)
-        cv2.createTrackbar("Target LV", window, 165, 255, self.nothing)
-        cv2.createTrackbar("Target UH", window, 229, 255, self.nothing)
-        cv2.createTrackbar("Target US", window, 148, 255, self.nothing)
+        cv2.createTrackbar("Target LH", window, 41, 255, self.nothing)
+        cv2.createTrackbar("Target LS", window, 44, 255, self.nothing)
+        cv2.createTrackbar("Target LV", window, 231, 255, self.nothing)
+        cv2.createTrackbar("Target UH", window, 182, 255, self.nothing)
+        cv2.createTrackbar("Target US", window, 138, 255, self.nothing)
         cv2.createTrackbar("Target UV", window, 255, 255, self.nothing)
+
+
+        cv2.createTrackbar("Exposure", window, 1, 13, self.nothing)
 
     def returnTrackbarPosition(self, window):
         ball_l_h = cv2.getTrackbarPos("Ball LH", window)
@@ -87,6 +91,8 @@ class Tracker():
         target_u_s = cv2.getTrackbarPos("Target US", window)
         target_u_v = cv2.getTrackbarPos("Target UV", window)
 
+        self.exposure = cv2.getTrackbarPos("Exposure", window)
+
         
 
         self.BALL_HSV = [[ball_l_h, ball_l_s, ball_l_v],
@@ -97,12 +103,13 @@ class Tracker():
 
     def setupVideoStream(self, file_name=2):
         self.cap = cv2.VideoCapture(file_name)
+        
 
     def showFrame(self):
         cv2.imshow("Video", self.currentFrame)
 
     def setFrame(self):
-        
+        self.cap.set(cv2.CAP_PROP_EXPOSURE,-self.exposure)
         ret, self.currentFrame = self.cap.read()
 
         #self.currentFrame = cv2.rotate(self.currentFrame, rotateCode = cv2.ROTATE_90_COUNTERCLOCKWISE)

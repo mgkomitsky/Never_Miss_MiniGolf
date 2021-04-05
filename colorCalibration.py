@@ -8,7 +8,7 @@ args = parser.parse_args()
 
 
 tracker = Tracker()
-tracker.setupVideoStream(0)
+tracker.setupVideoStream(1)
 cv2.namedWindow("Trackbars",cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
 tracker.drawTrackbars("Trackbars") 
 
