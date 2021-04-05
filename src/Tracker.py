@@ -12,12 +12,16 @@ import random
 import time
 import copy
 import math 
+import threading
 
 
 
 class Tracker():
 
     def __init__(self):
+        
+
+        
         self.previousDirection = 0
         self.currentDirection = True
         self.previousState = []
@@ -49,7 +53,7 @@ class Tracker():
 
         self.assist = True
         self.currentSpeed = "e"
-        self.exposure = -5
+        self.exposure = 5
 
     def nothing(self, x):
         pass
@@ -388,38 +392,7 @@ class Tracker():
     def closeSerialPort():
         self.ser.close
 
-    def checkESPState(self):
-        # Get json data to set states of the machine
-        response = requests.get("http://52.119.101.179:7980/metrics")
-
-        
- 
-      
-
-        mode = response.json()["mode"]
-
-        #print(mode)
-
-        if mode == "2":
-            self.assist = False
-            print(self.assist)
-            print("NO ASSIST")
-            
-
-        if mode == "3":
-            self.assist = True
-            print(self.assist)
-            print("SLOW")
-            self.sendCommandToMCU("b")
-            self.currentSpeed = "b"
-
-        if mode == "4":
-            self.assist = True
-            print(self.assist)
-            print("FAST")
-            self.sendCommandToMCU("e")
-            self.currentSpeed = "e"
-
+    
         
 
        
@@ -448,7 +421,7 @@ class Tracker():
         cv2.line(self.currentFrame,(0,self.bottomRailY-40),(self.targetRailX,self.bottomRailY-40), (255, 255,0), 1)
 
     def autoSetBoundaries(self):
-        self.updateMarkers()
+        #self.updateMarkers()
                 
                 
                 
@@ -523,3 +496,6 @@ class Tracker():
         cv2.rectangle(self.currentFrame,(0,0),(self.targetRailX, self.topRailY),(0,0,0),-1)
         cv2.rectangle(self.currentFrame,(self.targetRailX,0),(900, 900),(0,0,0),-1)
         cv2.rectangle(self.currentFrame,(0,self.bottomRailY),(900, 900),(0,0,0),-1)
+
+    
+        
