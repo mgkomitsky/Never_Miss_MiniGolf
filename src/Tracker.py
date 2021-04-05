@@ -78,7 +78,7 @@ class Tracker():
         cv2.createTrackbar("Target UV", window, 255, 255, self.nothing)
 
 
-        cv2.createTrackbar("Exposure", window, 1, 13, self.nothing)
+        cv2.createTrackbar("Exposure", window, 7, 13, self.nothing)
 
     def returnTrackbarPosition(self, window):
         ball_l_h = cv2.getTrackbarPos("Ball LH", window)

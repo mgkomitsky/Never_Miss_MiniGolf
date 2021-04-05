@@ -15,7 +15,7 @@ args = parser.parse_args()
 
 
 track = Tracker()
-#track.initializeSerialPort()
+track.initializeSerialPort()
 track.setupVideoStream(0)
 track.setFrame()
 
@@ -25,6 +25,7 @@ def checkESPState():
     
     while(check == True):
         
+        time.sleep(.5)
         # Get json data to set states of the machine
         response = requests.get("http://52.119.101.179:7980/metrics")
 
@@ -46,8 +47,8 @@ def checkESPState():
             track.assist = True
             print(track.assist)
             print("SLOW")
-            self.sendCommandToMCU("b")
-            self.currentSpeed = "b"
+            track.sendCommandToMCU("b")
+            track.currentSpeed = "b"
 
         if mode == "4":
             track.assist = True
@@ -94,7 +95,7 @@ while(True):
     
    
     track.drawBoundaries()
-    #track.calculateCommand()
+    track.calculateCommand()
     
     track.showFrame()
  
@@ -109,7 +110,7 @@ while(True):
 track.sendCommandToMCU('s')
 track.cap.release()
 cv2.destroyAllWindows()
-#track.closeSerialPort()
+track.closeSerialPort()
 
 
 # loop.py -f data\test9.mkv
